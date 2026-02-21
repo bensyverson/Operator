@@ -11,31 +11,63 @@ extension Operative {
     /// - Parameter userMessage: The user's input message.
     /// - Returns: A stream of operation events.
     public func run(_ userMessage: String) -> OperationStream {
-        OperationStream { continuation in
-            Task {
-                await executeLoop(userMessage: userMessage, continuation: continuation)
-                continuation.finish()
-            }
-        }
-    }
-
-    // MARK: - Private
-
-    private func executeLoop(
-        userMessage: String,
-        continuation: OperationStream.Continuation
-    ) async {
-        // Build initial conversation with tools in configuration
         var config = configuration
         config.tools = toolDefinitions.isEmpty ? nil : toolDefinitions
 
-        var conversation = LLM.Conversation(
+        let conversation = LLM.Conversation(
             systemPrompt: systemPrompt,
             messages: [
                 LLM.OpenAICompatibleAPI.ChatMessage(content: userMessage, role: .user),
             ],
             configuration: config
         )
+
+        return runLoop(with: conversation)
+    }
+
+    /// Continues the agent loop from a previous conversation.
+    ///
+    /// Use this to build multi-turn interactions: pass the ``OperativeResult/conversation``
+    /// from a previous run along with the next user message. The agent resumes with
+    /// full conversation history and a fresh budget.
+    ///
+    /// ```swift
+    /// let result1 = try await operative.run("Store my name as Alice").result()
+    /// let result2 = try await operative.run("What's my name?", continuing: result1.conversation).result()
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - userMessage: The next user message.
+    ///   - conversation: The conversation from a previous ``OperativeResult``.
+    /// - Returns: A stream of operation events.
+    public func run(_ userMessage: String, continuing conversation: LLM.Conversation) -> OperationStream {
+        var continued = conversation
+        continued.messages.append(
+            LLM.OpenAICompatibleAPI.ChatMessage(content: userMessage, role: .user)
+        )
+        // Ensure tools are still present in the configuration
+        if continued.configuration.tools == nil, !toolDefinitions.isEmpty {
+            continued.configuration.tools = toolDefinitions
+        }
+        return runLoop(with: continued)
+    }
+
+    // MARK: - Private
+
+    private func runLoop(with initialConversation: LLM.Conversation) -> OperationStream {
+        OperationStream { continuation in
+            Task {
+                await executeLoop(conversation: initialConversation, continuation: continuation)
+                continuation.finish()
+            }
+        }
+    }
+
+    private func executeLoop(
+        conversation initialConversation: LLM.Conversation,
+        continuation: OperationStream.Continuation
+    ) async {
+        var conversation = initialConversation
 
         var turnNumber = 0
         var cumulativeUsage = TokenUsage.zero

@@ -1,5 +1,5 @@
 {
-  "originHash" : "c89c8ac245b221220730a6ec5f30f1d54f190878e51bf05124b88876f7bf398d",
+  "originHash" : "d6aaf38e91f58ecce30fb42abd3f7abdd3453d09fe1c16c1e3ce9eb50a1932ca",
   "pins" : [
     {
       "identity" : "llm",
@@ -7,7 +7,25 @@
       "location" : "git@git.mattebox.com:ben/LLM.git",
       "state" : {
         "branch" : "main",
-        "revision" : "6e57858e7f9180328bf5ea79db0ca83a345fabaf"
+        "revision" : "b27a4f20d68472d3d3c83bc1eebabc1858903df5"
+      }
+    },
+    {
+      "identity" : "swift-docc-plugin",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-docc-plugin",
+      "state" : {
+        "revision" : "e977f65879f82b375a044c8837597f690c067da6",
+        "version" : "1.4.6"
+      }
+    },
+    {
+      "identity" : "swift-docc-symbolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-docc-symbolkit",
+      "state" : {
+        "revision" : "b45d1f2ed151d057b54504d653e0da5552844e34",
+        "version" : "1.0.0"
       }
     }
   ],

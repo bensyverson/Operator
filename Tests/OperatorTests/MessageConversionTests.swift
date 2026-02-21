@@ -82,6 +82,50 @@ struct MessageConversionTests {
         #expect(chatMessage.content == "done")
         #expect(chatMessage.tool_call_id == "call_456")
     }
+
+    @Test("init(from:) preserves tool_calls from assistant message")
+    func initFromAssistantWithToolCalls() {
+        let chatMessage = LLM.OpenAICompatibleAPI.ChatMessage(
+            content: nil,
+            role: .assistant,
+            tool_calls: [
+                LLM.OpenAICompatibleAPI.ToolCall(
+                    id: "call_abc",
+                    function: LLM.OpenAICompatibleAPI.FunctionCall(
+                        name: "getCurrentTime",
+                        arguments: "{}"
+                    )
+                ),
+            ]
+        )
+        let message = Message(from: chatMessage)
+        #expect(message.role == .assistant)
+        #expect(message.content == nil)
+        #expect(message.toolCalls?.count == 1)
+        #expect(message.toolCalls?.first?.id == "call_abc")
+        #expect(message.toolCalls?.first?.name == "getCurrentTime")
+        #expect(message.toolCalls?.first?.arguments == "{}")
+    }
+
+    @Test("toChatMessage() round-trips tool_calls")
+    func toChatMessageRoundTripsToolCalls() {
+        let original = Message(
+            role: .assistant,
+            content: nil,
+            toolCalls: [
+                Message.ToolCallInfo(id: "call_xyz", name: "dateMath", arguments: "{\"value\":5}"),
+            ]
+        )
+        let chatMessage = original.toChatMessage()
+        #expect(chatMessage.role == .assistant)
+        #expect(chatMessage.tool_calls?.count == 1)
+        #expect(chatMessage.tool_calls?.first?.id == "call_xyz")
+        #expect(chatMessage.tool_calls?.first?.function.name == "dateMath")
+        #expect(chatMessage.tool_calls?.first?.function.arguments == "{\"value\":5}")
+
+        let roundTripped = Message(from: chatMessage)
+        #expect(roundTripped == original)
+    }
 }
 
 @Suite("ToolRequest ← ToolCall Conversion")

@@ -17,6 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "git@git.mattebox.com:ben/LLM.git", branch: "main"),
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.3.0"),
     ],
     targets: [
         .target(

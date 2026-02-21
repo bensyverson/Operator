@@ -75,6 +75,10 @@ Generate HTML docs with:
 
 ```bash
 swift package generate-documentation --target Operator
+
+# Serve the docs:
+swift package --disable-sandbox preview-documentation --target Operator
+
 ```
 
 ## Installation
@@ -99,3 +103,12 @@ Then add it to your target:
 ```
 
 Requires Swift 6.2+ and macOS 15+ / iOS 18+.
+
+## Example
+
+See [`Examples/TimeAgent/`](Examples/TimeAgent/) for an interactive CLI agent that demonstrates tool use, multi-turn conversation, and provider configuration. Quick start:
+
+```bash
+cd Examples/TimeAgent
+swift run TimeAgent
+```

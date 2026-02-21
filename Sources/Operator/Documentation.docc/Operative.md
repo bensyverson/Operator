@@ -100,11 +100,23 @@ The Operative executes approved tool calls concurrently by default. If the LLM r
 
 If a tool has ordering requirements relative to other tools, that should be expressed at the Orchestrator level (by separating the tools into different Operatives) or by designing the tool to be idempotent.
 
-## Statefulness
+## Multi-Turn Conversations
 
 An Operative is stateful for the duration of a single ``run(_:)`` call. It maintains the conversation history (messages, tool results) within that run. Once the run completes, the Operative does not retain conversation state — a subsequent call to ``run(_:)`` starts fresh.
 
-If you need persistent conversation history across runs, that is an Orchestrator responsibility. Orchestrator can feed prior context into a new ``run(_:)`` call via the user message or by managing the conversation externally.
+To continue a conversation across runs, pass the previous result's conversation back via ``run(_:continuing:)``:
+
+```swift
+// First turn
+let result1 = try await operative.run("Store my name as Alice").result()
+
+// Second turn — agent remembers the first turn
+let result2 = try await operative.run("What's my name?", continuing: result1.conversation).result()
+```
+
+Each call to ``run(_:continuing:)`` gets a fresh budget. The conversation history (including all tool calls and results) is preserved, so the agent has full context from prior turns.
+
+For more complex orchestration — multiple agents, planning, or persistent memory — use the Orchestrator layer.
 
 ## Topics
 

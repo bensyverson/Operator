@@ -1,0 +1,24 @@
+{
+  "originHash" : "025fc621a156c9d4368bb7df78d1a56b1af93ad47aeaf462e02d91afed126d68",
+  "pins" : [
+    {
+      "identity" : "llm",
+      "kind" : "remoteSourceControl",
+      "location" : "git@git.mattebox.com:ben/LLM.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6e57858e7f9180328bf5ea79db0ca83a345fabaf"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "c5d11a805e765f52ba34ec7284bd4fcd6ba68615",
+        "version" : "1.7.0"
+      }
+    }
+  ],
+  "version" : 3
+}
