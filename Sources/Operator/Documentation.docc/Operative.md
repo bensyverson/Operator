@@ -11,7 +11,7 @@ An ``Operative`` is the central type in the Operator library. It encapsulates a 
 An Operative is initialized with everything it needs to run:
 
 ```swift
-let operative = Operative(
+let operative = try Operative(
     llm: myLLM,
     systemPrompt: "You are a helpful assistant with access to the user's file system.",
     tools: [fileSystem, webSearch, calculator],
@@ -20,9 +20,11 @@ let operative = Operative(
 )
 ```
 
+The initializer throws ``OperativeError/duplicateToolName(_:)`` if any two tools across all Operables share the same name.
+
 **Parameters:**
 
-- **llm**: A reference to an ``LLM`` instance. The Operative uses this to make model calls. Different Operatives can use different LLM instances (and therefore different models or providers), which is useful when Orchestrator needs to mix fast and powerful models.
+- **llm**: An ``LLM`` instance or any ``LLMService`` conformer. The Operative uses this to make model calls. Different Operatives can use different LLM instances (and therefore different models or providers), which is useful when Orchestrator needs to mix fast and powerful models. The ``LLMService`` protocol is exposed for testability — pass a mock in tests.
 - **systemPrompt**: The base system prompt sent with every request. Operator includes this verbatim — it does not inject additional instructions. The ``Operable/toolGroup`` descriptions are appended to tool schemas, not to the system prompt.
 - **tools**: An array of ``Operable`` conformers. The Operative flattens their ``ToolGroup/tools`` into a single tool list and sends the corresponding schemas to the LLM.
 - **budget**: A ``Budget`` that defines the Operative's resource limits. See <doc:Budget> for details.
@@ -30,21 +32,21 @@ let operative = Operative(
 
 ### Running an Operative
 
-The ``run(_:)`` method accepts a user message and returns an ``AsyncSequence`` of ``Operation`` events:
+The ``run(_:)`` method accepts a user message and returns an ``OperationStream`` (an `AsyncStream<Operation>`) of events:
 
 ```swift
 for await operation in operative.run("Find all Swift files in the project and count the lines of code") {
     switch operation {
     case .turnStarted(let context):
-        print("Turn \(context.turnNumber) of \(context.budget.maxTurns ?? -1)")
+        print("Turn \(context.turnNumber) of \(context.budgetRemaining.maxTurns ?? -1)")
     case .text(let chunk):
         print(chunk, terminator: "")
     case .toolsRequested(let requests):
         print("Agent wants to call: \(requests.map(\.name).joined(separator: ", "))")
     case .toolCompleted(let request, let output):
-        print("  \(request.name) → \(output.summary)")
+        print("  \(request.name) → \(output.content)")
     case .completed(let result):
-        print("\nFinal answer: \(result.text)")
+        print("\nFinal answer: \(result.text ?? "")")
     case .stopped(let reason):
         print("Agent stopped: \(reason)")
     default:
@@ -61,7 +63,7 @@ If you don't need real-time events, the ``result()`` convenience method consumes
 
 ```swift
 let result = try await operative.run("What's 2 + 2?").result()
-print(result.text)        // "4"
+print(result.text ?? "")  // "4"
 print(result.usage)       // Token usage summary
 print(result.turnsUsed)   // Number of turns taken
 ```
