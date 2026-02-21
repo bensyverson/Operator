@@ -20,7 +20,7 @@ LLM defines the wire types that flow between your application and the model: ``L
 
 The agent layer. Operator runs an LLM in a loop with access to tools. Its core responsibilities are:
 
-- **Tool management**: Defining, registering, and dispatching tools via the ``Operable`` protocol and ``Tool`` type.
+- **Tool management**: Defining, registering, and dispatching tools via the ``Operable`` protocol and ``ToolProvider`` type.
 - **The agent loop**: Sending messages to the LLM, parsing tool calls from responses, executing tools, and feeding results back until the task is complete or a budget is exhausted.
 - **Middleware**: A pipeline for transforming, filtering, or intercepting messages, tool calls, and responses.
 - **Budget enforcement**: Limiting the agent's resource usage by turns, tokens, or wall-clock time.

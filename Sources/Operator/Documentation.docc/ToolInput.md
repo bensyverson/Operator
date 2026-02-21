@@ -78,7 +78,7 @@ That's the entire protocol. The schema extraction, JSON decoding, and validation
 
 ## How Schema Extraction Works
 
-When a ``Tool`` is registered with a ``ToolInput`` type, Operator runs the schema-extracting decoder once at registration time:
+When a ``ToolProvider`` is registered with a ``ToolInput`` type, Operator runs the schema-extracting decoder once at registration time:
 
 1. **Invoke the type's `init(from:)`** using a custom `Decoder` implementation. This doesn't decode real data — it intercepts the calls the synthesized initializer makes.
 

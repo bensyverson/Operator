@@ -44,10 +44,10 @@ struct FileSystem: Operable {
 A ``ToolGroup`` bundles related tools with metadata:
 
 ```swift
-struct ToolGroup: Friendly {
+struct ToolGroup: Sendable {
     let name: String
     let description: String?
-    let tools: [any Tool]
+    let tools: [any ToolProvider]
 }
 ```
 
@@ -116,17 +116,17 @@ This tier is also useful for testing — ``ToolInput`` types are plain value typ
 
 ### Tier 3: Full Tool Conformance
 
-For tools with complex internal state, dependencies, or lifecycle requirements, conform directly to the ``Tool`` protocol:
+For tools with complex internal state, dependencies, or lifecycle requirements, conform directly to the ``ToolProvider`` protocol:
 
 ```swift
-protocol Tool: Sendable {
+protocol ToolProvider: Sendable {
     var definition: ToolDefinition { get }
     func call(arguments: ToolArguments) async throws -> ToolOutput
 }
 ```
 
 ```swift
-struct DatabaseQueryTool: Tool {
+struct DatabaseQueryTool: ToolProvider {
     let connection: DatabaseConnection
     let maxRows: Int
 
@@ -165,7 +165,7 @@ This tier gives full control over the ``ToolDefinition`` (including the ``JSONSc
 | Reusable ToolInput | Shared input shapes, testability | Auto-generated from Codable | Full — typed input struct |
 | Full Tool conformance | Complex tools, custom schemas | Hand-written | Manual — raw ToolArguments |
 
-All three tiers produce values conforming to ``Tool``. They can be mixed freely within a single ``ToolGroup``.
+All three tiers produce values conforming to ``ToolProvider``. They can be mixed freely within a single ``ToolGroup``.
 
 ## Registering Tools with an Operative
 
