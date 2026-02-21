@@ -115,7 +115,7 @@ Orchestrator creates Operatives with specific budgets to control resource alloca
 
 ```swift
 // A root agent with a generous budget
-let rootAgent = Operative(
+let rootAgent = try Operative(
     llm: flagshipLLM,
     systemPrompt: "You are a project manager coordinating sub-tasks.",
     tools: [...],
@@ -123,7 +123,7 @@ let rootAgent = Operative(
 )
 
 // A focused sub-agent with a tight budget
-let subAgent = Operative(
+let subAgent = try Operative(
     llm: fastLLM,
     systemPrompt: "You search the web for specific information.",
     tools: [webSearch],

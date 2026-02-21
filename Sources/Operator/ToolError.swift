@@ -10,6 +10,7 @@ public struct ToolError: Error, Sendable {
     /// The original error thrown by the tool.
     public let underlyingError: any Error
 
+    /// Creates a tool error with a message and the original error.
     public init(message: String, underlyingError: any Error) {
         self.message = message
         self.underlyingError = underlyingError

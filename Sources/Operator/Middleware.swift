@@ -32,10 +32,14 @@ public protocol Middleware: Sendable {
 // MARK: - Default implementations
 
 public extension Middleware {
+    /// Default no-op: passes the request through unchanged.
     func beforeRequest(_: inout RequestContext) async throws {}
+    /// Default no-op: passes the response through unchanged.
     func afterResponse(_: inout ResponseContext) async throws {}
+    /// Default no-op: allows all tool calls to proceed.
     func beforeToolCalls(_: inout [ToolCallContext]) async throws {}
 
+    /// Default: feeds the error description back to the LLM.
     func onToolError(_ error: Error, context _: ToolCallContext) async throws -> ToolErrorRecovery {
         .feedbackToLLM(error.localizedDescription)
     }

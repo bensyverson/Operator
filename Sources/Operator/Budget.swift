@@ -17,6 +17,7 @@ public struct Budget: Friendly {
     /// Wall-clock time limit for the entire run.
     public var timeout: Duration?
 
+    /// Creates a budget with the given limits.
     public init(
         maxTurns: Int? = nil,
         maxTokens: Int? = nil,
@@ -38,6 +39,7 @@ public struct Budget: Friendly {
         case timeoutSeconds
     }
 
+    /// Creates a budget by decoding from the given decoder.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         maxTurns = try container.decodeIfPresent(Int.self, forKey: .maxTurns)
@@ -50,6 +52,7 @@ public struct Budget: Friendly {
         }
     }
 
+    /// Encodes the budget into the given encoder.
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(maxTurns, forKey: .maxTurns)

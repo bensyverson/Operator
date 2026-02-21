@@ -28,6 +28,7 @@ public struct Message: Friendly {
     /// The tool call ID this message responds to, if this is a tool result.
     public var toolCallId: String?
 
+    /// Creates a message with the given role, content, and optional tool call ID.
     public init(role: Role, content: String? = nil, toolCallId: String? = nil) {
         self.role = role
         self.content = content

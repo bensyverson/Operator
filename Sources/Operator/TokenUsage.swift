@@ -14,6 +14,7 @@ public struct TokenUsage: Friendly {
     /// Total tokens (prompt + completion).
     public var totalTokens: Int
 
+    /// Creates a token usage record with the given counts.
     public init(promptTokens: Int, completionTokens: Int, totalTokens: Int) {
         self.promptTokens = promptTokens
         self.completionTokens = completionTokens
@@ -23,6 +24,7 @@ public struct TokenUsage: Friendly {
     /// A usage value of zero across all fields.
     public static let zero = TokenUsage(promptTokens: 0, completionTokens: 0, totalTokens: 0)
 
+    /// Adds two usage records together, summing each field.
     public static func + (lhs: TokenUsage, rhs: TokenUsage) -> TokenUsage {
         TokenUsage(
             promptTokens: lhs.promptTokens + rhs.promptTokens,

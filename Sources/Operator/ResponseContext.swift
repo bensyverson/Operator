@@ -9,6 +9,7 @@ public struct ResponseContext: Friendly {
     /// The tool calls parsed from the LLM's response.
     public var toolCalls: [ToolRequest]
 
+    /// Creates a response context with the given text and tool calls.
     public init(responseText: String? = nil, toolCalls: [ToolRequest] = []) {
         self.responseText = responseText
         self.toolCalls = toolCalls

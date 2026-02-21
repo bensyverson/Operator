@@ -10,6 +10,7 @@ public struct ToolRejection: Friendly {
     /// Why the tool call was blocked.
     public let reason: String
 
+    /// Creates a tool rejection for the given request and reason.
     public init(request: ToolRequest, reason: String) {
         self.request = request
         self.reason = reason

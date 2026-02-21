@@ -8,6 +8,7 @@ public struct TurnContext: Friendly {
     /// A snapshot of the remaining budget at the start of this turn.
     public let budgetRemaining: Budget
 
+    /// Creates a turn context for the given turn number and remaining budget.
     public init(turnNumber: Int, budgetRemaining: Budget) {
         self.turnNumber = turnNumber
         self.budgetRemaining = budgetRemaining

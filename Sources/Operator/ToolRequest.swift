@@ -13,6 +13,7 @@ public struct ToolRequest: Friendly {
     /// The unique identifier for this tool call.
     public let toolCallId: String
 
+    /// Creates a tool request with the given name, arguments, and call ID.
     public init(name: String, arguments: String, toolCallId: String) {
         self.name = name
         self.arguments = arguments

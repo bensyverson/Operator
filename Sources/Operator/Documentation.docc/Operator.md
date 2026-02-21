@@ -24,7 +24,7 @@ struct URLParser: Operable {
             name: "URL Parser",
             description: "Parse and inspect URLs",
             tools: [
-                Tool(
+                try Tool(
                     name: "parseURL",
                     description: "Parse a URL into its components",
                     input: ParseURLInput.self
@@ -38,7 +38,7 @@ struct URLParser: Operable {
 }
 
 // Create and run an Operative
-let operative = Operative(
+let operative = try Operative(
     llm: myLLM,
     systemPrompt: "You help users work with URLs.",
     tools: [URLParser()],

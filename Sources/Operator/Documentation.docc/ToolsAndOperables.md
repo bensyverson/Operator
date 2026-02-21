@@ -68,7 +68,7 @@ Operator offers three tiers of tool definition, each suited to different complex
 The most common approach. Define the tool inline with its name, description, input type, and an execution closure:
 
 ```swift
-Tool(
+try Tool(
     name: "readFile",
     description: "Read the contents of a file at the given path",
     input: ReadFileInput.self
@@ -83,7 +83,7 @@ The ``input`` parameter is a ``ToolInput`` type — a plain `Codable` struct who
 For tools with no parameters:
 
 ```swift
-Tool(name: "getCurrentTime", description: "Get the current date and time") {
+try Tool(name: "getCurrentTime", description: "Get the current date and time") {
     ToolOutput(Date.now.formatted())
 }
 ```
@@ -102,11 +102,11 @@ struct FileReference: ToolInput {
 }
 
 // Both tools take the same input
-Tool(name: "readFile", description: "Read a file", input: FileReference.self) { input in
+try Tool(name: "readFile", description: "Read a file", input: FileReference.self) { input in
     ToolOutput(try String(contentsOfFile: input.path, encoding: .utf8))
 }
 
-Tool(name: "deleteFile", description: "Delete a file", input: FileReference.self) { input in
+try Tool(name: "deleteFile", description: "Delete a file", input: FileReference.self) { input in
     try FileManager.default.removeItem(atPath: input.path)
     return ToolOutput("Deleted \(input.path)")
 }
@@ -172,7 +172,7 @@ All three tiers produce values conforming to ``ToolProvider``. They can be mixed
 Pass an array of ``Operable`` instances when creating an Operative:
 
 ```swift
-let operative = Operative(
+let operative = try Operative(
     llm: myLLM,
     systemPrompt: "You are a helpful assistant.",
     tools: [

@@ -17,6 +17,7 @@ public struct LLMResponse: Sendable {
     /// The conversation with the assistant's response appended.
     public let conversation: LLM.Conversation
 
+    /// Creates an LLM response with the given text, tool calls, usage, and conversation.
     public init(
         text: String?,
         toolCalls: [ToolRequest],

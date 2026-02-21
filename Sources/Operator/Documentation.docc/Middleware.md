@@ -203,7 +203,7 @@ struct RetryLogger: Middleware {
 Middlewares execute in the order they are provided to the Operative:
 
 ```swift
-let operative = Operative(
+let operative = try Operative(
     llm: myLLM,
     systemPrompt: "...",
     tools: [...],

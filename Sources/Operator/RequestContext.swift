@@ -11,6 +11,7 @@ public struct RequestContext: Friendly {
     /// The tool definitions that will accompany the request.
     public var toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition]
 
+    /// Creates a request context with the given messages and tool definitions.
     public init(
         messages: [Message],
         toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition]

@@ -16,6 +16,7 @@ public struct OperativeResult: Friendly {
     /// Total number of turns taken.
     public let turnsUsed: Int
 
+    /// Creates an operative result with the given text, conversation, usage, and turn count.
     public init(
         text: String?,
         conversation: LLM.Conversation,

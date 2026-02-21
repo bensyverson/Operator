@@ -16,11 +16,13 @@ public struct ContentFilter: Middleware, @unchecked Sendable {
     /// Known secret strings that must not appear in LLM output.
     public let secrets: [String]
 
+    /// Creates a content filter with the given blocked patterns and secrets.
     public init(blockedPatterns: [Regex<Substring>], secrets: [String]) {
         self.blockedPatterns = blockedPatterns
         self.secrets = secrets
     }
 
+    /// Redacts blocked patterns from outbound messages.
     public func beforeRequest(_ context: inout RequestContext) async throws {
         for i in context.messages.indices {
             guard let content = context.messages[i].content else { continue }
@@ -32,6 +34,7 @@ public struct ContentFilter: Middleware, @unchecked Sendable {
         }
     }
 
+    /// Throws if the LLM response contains any known secret.
     public func afterResponse(_ context: inout ResponseContext) async throws {
         guard let text = context.responseText else { return }
         for secret in secrets {

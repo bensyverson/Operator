@@ -21,6 +21,7 @@ public struct ToolCallContext: Friendly {
     /// Starts at 1, incremented by the Operative on retries.
     public var attemptCount: Int
 
+    /// Creates a tool call context with the given parameters.
     public init(
         name: String,
         arguments: String,
