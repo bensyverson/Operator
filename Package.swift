@@ -5,22 +5,32 @@ import PackageDescription
 
 let package = Package(
     name: "Operator",
+    platforms: [
+        .macOS(.v15),
+        .iOS(.v18),
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "Operator",
             targets: ["Operator"]
         ),
     ],
+    dependencies: [
+        .package(url: "git@git.mattebox.com:ben/LLM.git", branch: "main"),
+    ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Operator"
+            name: "Operator",
+            dependencies: [
+                .product(name: "LLM", package: "LLM"),
+            ]
         ),
         .testTarget(
             name: "OperatorTests",
-            dependencies: ["Operator"]
+            dependencies: [
+                "Operator",
+                .product(name: "LLM", package: "LLM"),
+            ]
         ),
     ]
 )

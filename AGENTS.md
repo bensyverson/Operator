@@ -16,7 +16,7 @@ When you need additional context, consult the docs:
 - [DocC documentation](./Sources/Operator/Documentation.docc/) - In-depth documentation about Operator's architecture, models and concepts
 - [project/](project/) - Internal design documents and past project plans
 
-API documentation is generated with DocC: `swift package generate-documentation --target Operator`. Ensure any new or updated code keeps our DocC annotations up to date.
+API documentation is generated with DocC: `swift package generate-documentation --target Operator`. Ensure any new or updated code keeps our DocC annotations up to date with 100% coverage.
 
 ## General
 

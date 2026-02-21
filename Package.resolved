@@ -1,0 +1,15 @@
+{
+  "originHash" : "c89c8ac245b221220730a6ec5f30f1d54f190878e51bf05124b88876f7bf398d",
+  "pins" : [
+    {
+      "identity" : "llm",
+      "kind" : "remoteSourceControl",
+      "location" : "git@git.mattebox.com:ben/LLM.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6e57858e7f9180328bf5ea79db0ca83a345fabaf"
+      }
+    }
+  ],
+  "version" : 3
+}
