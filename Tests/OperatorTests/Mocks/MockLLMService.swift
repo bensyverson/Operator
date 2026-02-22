@@ -39,6 +39,22 @@ extension LLMResponse {
         )
     }
 
+    /// Creates a response with thinking content and text.
+    static func withThinking(
+        _ thinking: String,
+        text: String,
+        usage: TokenUsage = TokenUsage(promptTokens: 10, completionTokens: 5, totalTokens: 15),
+        conversation: LLM.Conversation = LLM.Conversation(systemPrompt: "test")
+    ) -> LLMResponse {
+        LLMResponse(
+            text: text,
+            thinking: thinking,
+            toolCalls: [],
+            usage: usage,
+            conversation: conversation
+        )
+    }
+
     /// Creates a response with tool calls and optional text.
     static func withToolCalls(
         _ toolCalls: [ToolRequest],

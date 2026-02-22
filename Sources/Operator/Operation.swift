@@ -10,6 +10,12 @@ public enum Operation: Sendable {
     /// A new turn of the agent loop has started.
     case turnStarted(TurnContext)
 
+    /// Extended thinking or reasoning content from the LLM.
+    case thinking(String)
+
+    /// Resource utilization pressure signal.
+    case pressure(PressureInfo)
+
     /// A chunk of streamed text from the LLM.
     case text(String)
 

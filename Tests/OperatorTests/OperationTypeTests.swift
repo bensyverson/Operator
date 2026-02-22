@@ -63,6 +63,16 @@ struct OperationTests {
         }
     }
 
+    @Test("Pattern matching — thinking")
+    func thinking() {
+        let op = Operation.thinking("Let me reason about this...")
+        if case let .thinking(content) = op {
+            #expect(content == "Let me reason about this...")
+        } else {
+            Issue.record("Expected .thinking")
+        }
+    }
+
     @Test("Pattern matching — text")
     func text() {
         let op = Operation.text("Hello")

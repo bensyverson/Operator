@@ -10,6 +10,12 @@ import LLM
 ///
 /// See <doc:Operative> for detailed documentation.
 public struct Operative: Sendable {
+    /// A human-readable name for this agent, used for logging, debugging, and orchestration.
+    public let name: String
+
+    /// A brief description of this agent's purpose.
+    public let description: String
+
     /// The system prompt sent with every LLM request.
     public let systemPrompt: String
 
@@ -34,6 +40,8 @@ public struct Operative: Sendable {
     /// Creates an Operative with an ``LLMService`` (protocol-based, for testability).
     ///
     /// - Parameters:
+    ///   - name: A human-readable name for this agent.
+    ///   - description: A brief description of this agent's purpose.
     ///   - llm: The LLM service to use for model calls.
     ///   - systemPrompt: The base system prompt sent with every request.
     ///   - tools: Operable conformers whose tools the agent can call.
@@ -42,6 +50,8 @@ public struct Operative: Sendable {
     ///   - configuration: LLM conversation configuration.
     /// - Throws: ``OperativeError/duplicateToolName(_:)`` if tool names collide.
     public init(
+        name: String,
+        description: String,
         llm: any LLMService,
         systemPrompt: String,
         tools: [any Operable],
@@ -49,6 +59,8 @@ public struct Operative: Sendable {
         middleware: [any Middleware] = [],
         configuration: LLM.ConversationConfiguration = LLM.ConversationConfiguration()
     ) throws {
+        self.name = name
+        self.description = description
         self.llm = llm
         self.systemPrompt = systemPrompt
         self.budget = budget
@@ -85,6 +97,8 @@ public struct Operative: Sendable {
     /// This convenience initializer wraps the actor in an internal adapter.
     ///
     /// - Parameters:
+    ///   - name: A human-readable name for this agent.
+    ///   - description: A brief description of this agent's purpose.
     ///   - llm: The LLM actor to use for model calls.
     ///   - systemPrompt: The base system prompt sent with every request.
     ///   - tools: Operable conformers whose tools the agent can call.
@@ -93,6 +107,8 @@ public struct Operative: Sendable {
     ///   - configuration: LLM conversation configuration.
     /// - Throws: ``OperativeError/duplicateToolName(_:)`` if tool names collide.
     public init(
+        name: String,
+        description: String,
         llm: LLM,
         systemPrompt: String,
         tools: [any Operable],
@@ -101,6 +117,8 @@ public struct Operative: Sendable {
         configuration: LLM.ConversationConfiguration = LLM.ConversationConfiguration()
     ) throws {
         try self.init(
+            name: name,
+            description: description,
             llm: LLMServiceAdapter(llm),
             systemPrompt: systemPrompt,
             tools: tools,

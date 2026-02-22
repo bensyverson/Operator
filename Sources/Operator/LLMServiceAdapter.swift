@@ -16,6 +16,7 @@ struct LLMServiceAdapter: LLMService {
         let response: LLM.ConversationResponse = try await llm.chat(conversation: conversation)
         return LLMResponse(
             text: response.text,
+            thinking: response.thinking,
             toolCalls: response.toolCalls.map { ToolRequest(from: $0) },
             usage: TokenUsage.from(response.rawResponse.usage),
             conversation: response.conversation

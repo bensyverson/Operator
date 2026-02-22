@@ -8,6 +8,9 @@ public struct LLMResponse: Sendable {
     /// The text content of the response, if any.
     public let text: String?
 
+    /// Extended thinking or reasoning content, if any.
+    public let thinking: String?
+
     /// Tool calls requested by the LLM.
     public let toolCalls: [ToolRequest]
 
@@ -20,11 +23,13 @@ public struct LLMResponse: Sendable {
     /// Creates an LLM response with the given text, tool calls, usage, and conversation.
     public init(
         text: String?,
+        thinking: String? = nil,
         toolCalls: [ToolRequest],
         usage: TokenUsage,
         conversation: LLM.Conversation
     ) {
         self.text = text
+        self.thinking = thinking
         self.toolCalls = toolCalls
         self.usage = usage
         self.conversation = conversation

@@ -71,6 +71,7 @@ extension Operative {
 
         var turnNumber = 0
         var cumulativeUsage = TokenUsage.zero
+        var lastPromptTokens = 0
         let startTime = ContinuousClock.now
 
         while true {
@@ -94,6 +95,17 @@ extension Operative {
                 return
             }
 
+            // Compute pressure signals
+            let pressureSignals = computePressure(
+                lastPromptTokens: lastPromptTokens,
+                cumulativeUsage: cumulativeUsage
+            )
+
+            // Emit pressure signals
+            for signal in pressureSignals {
+                continuation.yield(.pressure(signal))
+            }
+
             // Emit turn started
             let budgetRemaining = remainingBudget(
                 turn: turnNumber,
@@ -102,14 +114,16 @@ extension Operative {
             )
             continuation.yield(.turnStarted(TurnContext(
                 turnNumber: turnNumber,
-                budgetRemaining: budgetRemaining
+                budgetRemaining: budgetRemaining,
+                pressure: pressureSignals
             )))
 
             // 2. Pre-request middleware
             let messages = conversation.messages.map { Message(from: $0) }
             var requestContext = RequestContext(
                 messages: messages,
-                toolDefinitions: toolDefinitions
+                toolDefinitions: toolDefinitions,
+                pressure: pressureSignals
             )
             do {
                 for mw in middleware {
@@ -160,11 +174,13 @@ extension Operative {
             }
 
             cumulativeUsage = cumulativeUsage + response.usage
+            lastPromptTokens = response.usage.promptTokens
             conversation = response.conversation
 
             // 4. Post-response middleware
             var responseContext = ResponseContext(
                 responseText: response.text,
+                thinking: response.thinking,
                 toolCalls: response.toolCalls
             )
             do {
@@ -176,7 +192,12 @@ extension Operative {
                 return
             }
 
-            // 5. Emit text if present
+            // 5. Emit thinking if present (before text — think, then speak)
+            if let thinking = responseContext.thinking, !thinking.isEmpty {
+                continuation.yield(.thinking(thinking))
+            }
+
+            // 6. Emit text if present
             if let text = responseContext.responseText, !text.isEmpty {
                 continuation.yield(.text(text))
             }
@@ -392,6 +413,43 @@ extension Operative {
 
             // Loop continues to next turn
         }
+    }
+
+    /// Computes pressure signals based on current resource utilization.
+    private func computePressure(
+        lastPromptTokens: Int,
+        cumulativeUsage: TokenUsage
+    ) -> [PressureInfo] {
+        var signals = [PressureInfo]()
+        let threshold = budget.pressureThreshold
+
+        // Context window pressure (from API-reported prompt tokens)
+        if let windowSize = budget.contextWindowTokens, windowSize > 0, lastPromptTokens > 0 {
+            let utilization = Double(lastPromptTokens) / Double(windowSize)
+            if utilization >= threshold {
+                signals.append(PressureInfo(
+                    dimension: .contextWindow,
+                    utilization: utilization,
+                    current: lastPromptTokens,
+                    limit: windowSize
+                ))
+            }
+        }
+
+        // Token budget pressure (cumulative usage vs budget)
+        if let maxTokens = budget.maxTokens, maxTokens > 0 {
+            let utilization = Double(cumulativeUsage.totalTokens) / Double(maxTokens)
+            if utilization >= threshold {
+                signals.append(PressureInfo(
+                    dimension: .tokenBudget,
+                    utilization: utilization,
+                    current: cumulativeUsage.totalTokens,
+                    limit: maxTokens
+                ))
+            }
+        }
+
+        return signals
     }
 
     /// Computes the remaining budget given current usage.

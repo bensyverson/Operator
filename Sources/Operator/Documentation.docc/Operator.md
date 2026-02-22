@@ -39,6 +39,8 @@ struct URLParser: Operable {
 
 // Create and run an Operative
 let operative = try Operative(
+    name: "URLHelper",
+    description: "Helps users work with URLs",
     llm: myLLM,
     systemPrompt: "You help users work with URLs.",
     tools: [URLParser()],
@@ -73,4 +75,5 @@ for await operation in operative.run("What's the host and port of https://exampl
 ### Configuration
 
 - <doc:Middleware>
+- <doc:CompactionMiddleware>
 - <doc:Budget>

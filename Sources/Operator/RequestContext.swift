@@ -11,12 +11,20 @@ public struct RequestContext: Friendly {
     /// The tool definitions that will accompany the request.
     public var toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition]
 
-    /// Creates a request context with the given messages and tool definitions.
+    /// Active pressure signals, if any.
+    ///
+    /// Middleware can inspect this in ``Middleware/beforeRequest(_:)`` to react
+    /// to context or budget pressure (e.g., triggering compaction).
+    public var pressure: [PressureInfo]
+
+    /// Creates a request context with the given messages, tool definitions, and pressure signals.
     public init(
         messages: [Message],
-        toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition]
+        toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition],
+        pressure: [PressureInfo] = []
     ) {
         self.messages = messages
         self.toolDefinitions = toolDefinitions
+        self.pressure = pressure
     }
 }

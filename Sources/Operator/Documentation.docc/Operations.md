@@ -22,6 +22,14 @@ case turnCompleted(TurnResult)
 
 A **turn** is one iteration of the agent loop: a round-trip to the LLM, possibly followed by tool execution. ``turnStarted`` fires at the beginning of each iteration and carries context about the current turn number and remaining budget. ``turnCompleted`` fires after all tool calls for that turn have resolved, carrying token usage statistics for the turn.
 
+### Thinking
+
+```swift
+case thinking(String)
+```
+
+Emitted when the LLM includes extended thinking or reasoning content in its response. This surfaces Anthropic thinking blocks and OpenAI reasoning content. Thinking is always emitted before the corresponding ``text`` event — the agent thinks, then speaks. Thinking content is also available to middleware via ``ResponseContext/thinking``.
+
 ### Streamed Text
 
 ```swift
@@ -72,6 +80,7 @@ Within a single turn, Operations arrive in a predictable order:
 
 ```
 turnStarted
+├── thinking (if extended thinking is present)
 ├── text (zero or more streamed chunks)
 ├── toolsRequested (if the LLM called tools)
 ├── toolsRejected (if middleware blocked any)
@@ -86,7 +95,7 @@ completed / stopped
 A turn that produces only text (no tool calls) looks like:
 
 ```
-turnStarted → text → text → text → turnCompleted → completed
+turnStarted → thinking → text → text → text → turnCompleted → completed
 ```
 
 A turn with tool calls looks like:
@@ -114,6 +123,8 @@ for await operation in operative.run("Analyze this dataset") {
     switch operation {
     case .turnStarted(let ctx):
         updateUI(status: "Thinking... (turn \(ctx.turnNumber))")
+    case .thinking(let content):
+        showThinkingIndicator(content)
     case .text(let chunk):
         appendToOutput(chunk)
     case .toolsRequested(let tools):

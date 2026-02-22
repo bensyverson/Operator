@@ -4,13 +4,15 @@ import Testing
 
 @Suite("Budget")
 struct BudgetTests {
-    @Test("Default init has all nil fields")
+    @Test("Default init has all nil fields and default threshold")
     func defaultInit() {
         let budget = Budget()
         #expect(budget.maxTurns == nil)
         #expect(budget.maxTokens == nil)
         #expect(budget.maxTokensPerTurn == nil)
         #expect(budget.timeout == nil)
+        #expect(budget.contextWindowTokens == nil)
+        #expect(budget.pressureThreshold == 0.8)
     }
 
     @Test("Custom values are stored correctly")
@@ -33,7 +35,9 @@ struct BudgetTests {
             maxTurns: 5,
             maxTokens: 10000,
             maxTokensPerTurn: 2048,
-            timeout: .seconds(60)
+            timeout: .seconds(60),
+            contextWindowTokens: 200_000,
+            pressureThreshold: 0.7
         )
         let data = try JSONEncoder().encode(budget)
         let decoded = try JSONDecoder().decode(Budget.self, from: data)

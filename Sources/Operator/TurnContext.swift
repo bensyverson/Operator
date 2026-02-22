@@ -8,9 +8,13 @@ public struct TurnContext: Friendly {
     /// A snapshot of the remaining budget at the start of this turn.
     public let budgetRemaining: Budget
 
-    /// Creates a turn context for the given turn number and remaining budget.
-    public init(turnNumber: Int, budgetRemaining: Budget) {
+    /// Active pressure signals at the start of this turn.
+    public let pressure: [PressureInfo]
+
+    /// Creates a turn context for the given turn number, remaining budget, and pressure signals.
+    public init(turnNumber: Int, budgetRemaining: Budget, pressure: [PressureInfo] = []) {
         self.turnNumber = turnNumber
         self.budgetRemaining = budgetRemaining
+        self.pressure = pressure
     }
 }

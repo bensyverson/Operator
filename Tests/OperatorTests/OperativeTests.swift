@@ -76,6 +76,21 @@ private func collectOperations(_ stream: OperationStream) async -> [Op] {
 
 @Suite("Operative Init")
 struct OperativeInitTests {
+    @Test("Init stores name and description")
+    func initNameAndDescription() throws {
+        let mock = MockLLMService(responses: [])
+        let operative = try Operative(
+            name: "TestAgent",
+            description: "A test agent for unit testing",
+            llm: mock,
+            systemPrompt: "test",
+            tools: [],
+            budget: Budget()
+        )
+        #expect(operative.name == "TestAgent")
+        #expect(operative.description == "A test agent for unit testing")
+    }
+
     @Test("Init with single Operable flattens tools")
     func initSingleOperable() throws {
         let operable = TestOperable(toolGroup: ToolGroup(
@@ -84,6 +99,8 @@ struct OperativeInitTests {
         ))
         let mock = MockLLMService(responses: [])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -108,6 +125,8 @@ struct OperativeInitTests {
         ))
         let mock = MockLLMService(responses: [])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [op1, op2],
@@ -131,6 +150,8 @@ struct OperativeInitTests {
         let mock = MockLLMService(responses: [])
         #expect(throws: OperativeError.self) {
             try Operative(
+                name: "test",
+                description: "test agent",
                 llm: mock,
                 systemPrompt: "test",
                 tools: [op1, op2],
@@ -143,6 +164,8 @@ struct OperativeInitTests {
     func initEmptyTools() throws {
         let mock = MockLLMService(responses: [])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [],
@@ -158,6 +181,8 @@ struct OperativeInitTests {
         let mw2 = RecordingMiddleware(id: "second")
         let mock = MockLLMService(responses: [])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [],
@@ -178,6 +203,8 @@ struct OperativeAgentLoopTests {
             .textOnly("Hello, world!"),
         ])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "You are helpful",
             tools: [],
@@ -229,6 +256,8 @@ struct OperativeAgentLoopTests {
             tools: [makeEchoTool()]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -285,6 +314,8 @@ struct OperativeAgentLoopTests {
             tools: [makeEchoTool()]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -319,6 +350,8 @@ struct OperativeAgentLoopTests {
             tools: [makeEchoTool()]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -351,6 +384,8 @@ struct OperativeAgentLoopTests {
         ))
         let rejectMiddleware = RejectingMiddleware(toolNames: ["echo"])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -397,6 +432,8 @@ struct OperativeAgentLoopTests {
             tools: [makeFailingTool()]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -441,6 +478,8 @@ struct OperativeAgentLoopTests {
         ))
         let throwMiddleware = ThrowOnErrorMiddleware()
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -472,6 +511,8 @@ struct OperativeAgentLoopTests {
             tools: [makeStopTool()]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -518,6 +559,8 @@ struct OperativeAgentLoopTests {
             tools: [echo1, echo2]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
@@ -539,6 +582,8 @@ struct OperativeAgentLoopTests {
             .textOnly("42"),
         ])
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [],
@@ -565,6 +610,8 @@ struct OperativeAgentLoopTests {
             tools: [makeEchoTool()]
         ))
         let operative = try Operative(
+            name: "test",
+            description: "test agent",
             llm: mock,
             systemPrompt: "test",
             tools: [operable],
