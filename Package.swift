@@ -17,6 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "git@git.mattebox.com:ben/LLM.git", branch: "main"),
+        .package(url: "https://github.com/modelcontextprotocol/swift-sdk", from: "0.11.0"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.3.0"),
     ],
     targets: [
@@ -24,6 +25,7 @@ let package = Package(
             name: "Operator",
             dependencies: [
                 .product(name: "LLM", package: "LLM"),
+                .product(name: "MCP", package: "swift-sdk"),
             ]
         ),
         .testTarget(
@@ -31,6 +33,7 @@ let package = Package(
             dependencies: [
                 "Operator",
                 .product(name: "LLM", package: "LLM"),
+                .product(name: "MCP", package: "swift-sdk"),
             ]
         ),
     ]

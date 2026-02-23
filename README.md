@@ -71,6 +71,7 @@ Full documentation is available as a DocC catalog at [`Sources/Operator/Document
 - **[Budget](Sources/Operator/Documentation.docc/Budget.md)** — Controlling how long and how far an agent can run
 - **[Operations](Sources/Operator/Documentation.docc/Operations.md)** — The real-time event stream
 - **[Apple Intelligence](Sources/Operator/Documentation.docc/AppleIntelligence.md)** — On-device Foundation Models integration (macOS 26+, iOS 26+)
+- **[MCP Integration](Sources/Operator/Documentation.docc/MCPIntegration.md)** — Connect to MCP servers and use their tools with any Operative
 
 Generate HTML docs with:
 

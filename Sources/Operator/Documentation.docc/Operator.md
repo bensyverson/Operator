@@ -81,3 +81,4 @@ for await operation in operative.run("What's the host and port of https://exampl
 ### Platform Integrations
 
 - <doc:AppleIntelligence>
+- <doc:MCPIntegration>
