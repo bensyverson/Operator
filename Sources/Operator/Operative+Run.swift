@@ -204,7 +204,8 @@ extension Operative {
                 continuation.yield(.turnCompleted(TurnResult(
                     usage: response.usage,
                     toolCallCount: 0,
-                    cumulativeUsage: cumulativeUsage
+                    cumulativeUsage: cumulativeUsage,
+                    conversation: conversation
                 )))
                 continuation.yield(.completed(result))
                 return
@@ -398,7 +399,8 @@ extension Operative {
             continuation.yield(.turnCompleted(TurnResult(
                 usage: response.usage,
                 toolCallCount: toolRequests.count,
-                cumulativeUsage: cumulativeUsage
+                cumulativeUsage: cumulativeUsage,
+                conversation: conversation
             )))
 
             // Loop continues to next turn

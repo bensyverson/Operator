@@ -24,11 +24,30 @@ struct TurnResultTests {
         let result = TurnResult(
             usage: TokenUsage(promptTokens: 100, completionTokens: 50, totalTokens: 150),
             toolCallCount: 2,
-            cumulativeUsage: TokenUsage(promptTokens: 300, completionTokens: 120, totalTokens: 420)
+            cumulativeUsage: TokenUsage(promptTokens: 300, completionTokens: 120, totalTokens: 420),
+            conversation: LLM.Conversation(systemPrompt: "test")
         )
         let data = try JSONEncoder().encode(result)
         let decoded = try JSONDecoder().decode(TurnResult.self, from: data)
         #expect(decoded == result)
+    }
+
+    @Test("Conversation is preserved")
+    func conversationPreserved() {
+        let conversation = LLM.Conversation(
+            systemPrompt: "You are helpful",
+            messages: [
+                LLM.OpenAICompatibleAPI.ChatMessage(content: "Hello", role: .user),
+            ]
+        )
+        let result = TurnResult(
+            usage: .zero,
+            toolCallCount: 0,
+            cumulativeUsage: .zero,
+            conversation: conversation
+        )
+        #expect(result.conversation.systemPrompt == "You are helpful")
+        #expect(result.conversation.messages.count == 1)
     }
 }
 
@@ -140,7 +159,8 @@ struct OperationTests {
         let result = TurnResult(
             usage: TokenUsage.zero,
             toolCallCount: 0,
-            cumulativeUsage: TokenUsage.zero
+            cumulativeUsage: TokenUsage.zero,
+            conversation: LLM.Conversation(systemPrompt: "test")
         )
         let op = Operation.turnCompleted(result)
         if case let .turnCompleted(r) = op {
