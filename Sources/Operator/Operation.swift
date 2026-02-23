@@ -10,13 +10,19 @@ public enum Operation: Sendable {
     /// A new turn of the agent loop has started.
     case turnStarted(TurnContext)
 
-    /// Extended thinking or reasoning content from the LLM.
+    /// An incremental chunk of extended thinking or reasoning from the LLM.
+    ///
+    /// Streamed in real time as the model generates thinking content.
+    /// Thinking deltas always precede text deltas within a turn.
     case thinking(String)
 
     /// Resource utilization pressure signal.
     case pressure(PressureInfo)
 
-    /// A chunk of streamed text from the LLM.
+    /// An incremental chunk of streamed text from the LLM.
+    ///
+    /// Streamed in real time as the model generates text. Concatenate
+    /// successive chunks to reconstruct the complete response.
     case text(String)
 
     /// The LLM requested one or more tool calls.

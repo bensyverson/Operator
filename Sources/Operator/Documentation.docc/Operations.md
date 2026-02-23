@@ -28,7 +28,7 @@ A **turn** is one iteration of the agent loop: a round-trip to the LLM, possibly
 case thinking(String)
 ```
 
-Emitted when the LLM includes extended thinking or reasoning content in its response. This surfaces Anthropic thinking blocks and OpenAI reasoning content. Thinking is always emitted before the corresponding ``text`` event — the agent thinks, then speaks. Thinking content is also available to middleware via ``ResponseContext/thinking``.
+Streamed incrementally as the LLM generates extended thinking or reasoning content. Each event carries a chunk — typically a few tokens — that arrives in real time as the model works. This surfaces Anthropic thinking blocks and OpenAI reasoning content. Thinking deltas always precede text deltas within a turn — the agent thinks, then speaks. The complete thinking content is also available to middleware via ``ResponseContext/thinking`` after streaming finishes.
 
 ### Streamed Text
 
@@ -36,7 +36,7 @@ Emitted when the LLM includes extended thinking or reasoning content in its resp
 case text(String)
 ```
 
-Emitted as the LLM generates text content. Each event carries a chunk of text — typically a few tokens. These chunks arrive in order and can be concatenated to form the complete response. Text events may be interleaved with tool call events if the LLM produces text alongside tool calls.
+Streamed incrementally as the LLM generates text content. Each event carries a chunk of text — typically a few tokens — that arrives in real time. These chunks arrive in order and can be concatenated to form the complete response. This enables token-by-token display in UIs. The complete text is also available to middleware via ``ResponseContext/responseText`` after streaming finishes.
 
 ### Tool Events
 

@@ -140,19 +140,19 @@ extension Operative {
                 conversation.configuration.tools = requestContext.toolDefinitions
             }
 
-            // 3. Call LLM (with timeout if budget specifies one)
+            // 3. Call LLM with streaming (with timeout if budget specifies one)
             let response: LLMResponse
             do {
+                let stream = llm.chat(conversation: conversation)
                 if let timeout = budget.timeout {
                     let remaining = timeout - (ContinuousClock.now - startTime)
                     if remaining <= .zero {
                         continuation.yield(.stopped(.timeout))
                         return
                     }
-                    let conversationSnapshot = conversation
                     response = try await withThrowingTaskGroup(of: LLMResponse.self) { group in
                         group.addTask {
-                            try await self.llm.chat(conversation: conversationSnapshot)
+                            try await self.consumeStream(stream, continuation: continuation)
                         }
                         group.addTask {
                             try await Task.sleep(for: remaining)
@@ -163,7 +163,7 @@ extension Operative {
                         return result
                     }
                 } else {
-                    response = try await llm.chat(conversation: conversation)
+                    response = try await consumeStream(stream, continuation: continuation)
                 }
             } catch is TimeoutError {
                 continuation.yield(.stopped(.timeout))
@@ -177,7 +177,7 @@ extension Operative {
             lastPromptTokens = response.usage.promptTokens
             conversation = response.conversation
 
-            // 4. Post-response middleware
+            // 4. Post-response middleware (runs after streaming completes)
             var responseContext = ResponseContext(
                 responseText: response.text,
                 thinking: response.thinking,
@@ -192,17 +192,7 @@ extension Operative {
                 return
             }
 
-            // 5. Emit thinking if present (before text — think, then speak)
-            if let thinking = responseContext.thinking, !thinking.isEmpty {
-                continuation.yield(.thinking(thinking))
-            }
-
-            // 6. Emit text if present
-            if let text = responseContext.responseText, !text.isEmpty {
-                continuation.yield(.text(text))
-            }
-
-            // 6. If no tool calls → completed
+            // 5. If no tool calls → completed
             let toolRequests = responseContext.toolCalls
             if toolRequests.isEmpty {
                 let result = OperativeResult(
@@ -469,6 +459,30 @@ extension Operative {
             }
         )
     }
+
+    /// Consumes a stream of LLM events, yielding text and thinking deltas
+    /// to the operation continuation as they arrive, and returning the
+    /// completed ``LLMResponse`` when the stream finishes.
+    private func consumeStream(
+        _ stream: AsyncThrowingStream<LLM.StreamEvent, Error>,
+        continuation: OperationStream.Continuation
+    ) async throws -> LLMResponse {
+        for try await event in stream {
+            switch event {
+            case let .textDelta(chunk):
+                continuation.yield(.text(chunk))
+            case let .thinkingDelta(chunk):
+                continuation.yield(.thinking(chunk))
+            case .toolCallDelta:
+                // Tool call deltas are partial; full calls come in .completed
+                break
+            case let .completed(conversationResponse):
+                return LLMResponse(from: conversationResponse)
+            }
+        }
+        // Stream ended without a .completed event — shouldn't happen in practice
+        throw StreamError.noCompletionEvent
+    }
 }
 
 // MARK: - Internal types
@@ -481,3 +495,8 @@ private struct ToolExecutionResult: Sendable {
 
 /// Sentinel error for timeout detection.
 private struct TimeoutError: Error {}
+
+/// Error thrown when a stream ends without a `.completed` event.
+private enum StreamError: Error {
+    case noCompletionEvent
+}

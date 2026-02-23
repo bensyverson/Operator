@@ -1,27 +1,37 @@
 import LLM
 
-/// Normalized LLM response, abstracting over provider differences.
+/// Normalized LLM response used internally by the agent loop.
 ///
 /// Contains the response text, parsed tool calls, token usage,
 /// and the updated conversation with the assistant's message appended.
-public struct LLMResponse: Sendable {
+/// Built from the `.completed` event of a ``LLM/StreamEvent`` stream.
+struct LLMResponse: Sendable {
     /// The text content of the response, if any.
-    public let text: String?
+    let text: String?
 
     /// Extended thinking or reasoning content, if any.
-    public let thinking: String?
+    let thinking: String?
 
     /// Tool calls requested by the LLM.
-    public let toolCalls: [ToolRequest]
+    let toolCalls: [ToolRequest]
 
     /// Token usage for this request.
-    public let usage: TokenUsage
+    let usage: TokenUsage
 
     /// The conversation with the assistant's response appended.
-    public let conversation: LLM.Conversation
+    let conversation: LLM.Conversation
 
-    /// Creates an LLM response with the given text, tool calls, usage, and conversation.
-    public init(
+    /// Creates an LLM response from a completed conversation response.
+    init(from response: LLM.ConversationResponse) {
+        text = response.text
+        thinking = response.thinking
+        toolCalls = response.toolCalls.map { ToolRequest(from: $0) }
+        usage = TokenUsage.from(response.rawResponse.usage)
+        conversation = response.conversation
+    }
+
+    /// Creates an LLM response with explicit values (used by tests).
+    init(
         text: String?,
         thinking: String? = nil,
         toolCalls: [ToolRequest],

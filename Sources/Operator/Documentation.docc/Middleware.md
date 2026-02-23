@@ -72,11 +72,14 @@ struct ProfanityFilter: Middleware {
 func afterResponse(_ context: inout ResponseContext) async throws
 ```
 
-Runs after the LLM responds, before the response is parsed for tool calls. The ``ResponseContext`` provides access to the raw response content. Use this to:
+Runs after the LLM response has been fully streamed. By the time this middleware runs, all `.text` and `.thinking` deltas have already been yielded to consumers. The ``ResponseContext`` provides read-only access to the complete response text and thinking content, and mutable access to tool calls. Use this to:
 
-- **Detect secrets**: Check the LLM's output against a list of known secrets to prevent exfiltration.
-- **Content filtering**: Redact or reject responses that contain prohibited content.
-- **Logging**: Record raw LLM outputs for debugging or auditing.
+- **Detect secrets**: Check the LLM's output against a list of known secrets to prevent exfiltration. If a secret is detected, throw to emit a `.stopped` event.
+- **Content filtering**: Reject responses that contain prohibited content by throwing.
+- **Logging**: Record complete LLM outputs for debugging or auditing.
+- **Modify tool calls**: Filter, reorder, or adjust the tool calls before they execute.
+
+> Important: Because text and thinking have already been streamed to consumers, ``ResponseContext/responseText`` and ``ResponseContext/thinking`` are read-only. If middleware needs to suppress output, it should throw to stop the agent. Only ``ResponseContext/toolCalls`` can be modified.
 
 ```swift
 struct SecretGuard: Middleware {
@@ -232,7 +235,7 @@ A common question: should I use middleware or observe the Operation stream?
 | Display a tool call in the UI | Operations (``.toolsRequested``) |
 | Redact content before it reaches the LLM | Middleware (``beforeRequest``) |
 | Log what the agent did for debugging | Operations (any event) |
-| Modify the LLM's response | Middleware (``afterResponse``) |
+| Inspect the LLM's response or modify tool calls | Middleware (``afterResponse``) |
 | Track token usage over time | Operations (``.turnCompleted``) |
 | Recover from a tool error | Middleware (``onToolError``) |
 | Show the user that a tool failed | Operations (``.toolFailed``) |

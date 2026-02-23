@@ -12,14 +12,21 @@ struct LLMServiceAdapter: LLMService {
         self.llm = llm
     }
 
-    func chat(conversation: LLM.Conversation) async throws -> LLMResponse {
-        let response: LLM.ConversationResponse = try await llm.chat(conversation: conversation)
-        return LLMResponse(
-            text: response.text,
-            thinking: response.thinking,
-            toolCalls: response.toolCalls.map { ToolRequest(from: $0) },
-            usage: TokenUsage.from(response.rawResponse.usage),
-            conversation: response.conversation
-        )
+    func chat(conversation: LLM.Conversation) -> AsyncThrowingStream<LLM.StreamEvent, Error> {
+        let service = llm
+        let conversationSnapshot = conversation
+        return AsyncThrowingStream { continuation in
+            Task {
+                let stream = await service.streamChat(conversation: conversationSnapshot)
+                do {
+                    for try await event in stream {
+                        continuation.yield(event)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
     }
 }

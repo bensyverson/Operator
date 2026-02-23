@@ -21,33 +21,47 @@
         /// Creates an Apple Intelligence service.
         public init() {}
 
-        public func chat(conversation: LLM.Conversation) async throws -> LLMResponse {
-            // Build session instructions from system prompt + prior messages
-            let priorMessages = conversation.messages.dropLast()
-            var instructions = conversation.systemPrompt
+        public func chat(conversation: LLM.Conversation) -> AsyncThrowingStream<LLM.StreamEvent, Error> {
+            let conversationSnapshot = conversation
+            return AsyncThrowingStream { continuation in
+                Task {
+                    do {
+                        // Build session instructions from system prompt + prior messages
+                        let priorMessages = conversationSnapshot.messages.dropLast()
+                        var instructions = conversationSnapshot.systemPrompt
 
-            if !priorMessages.isEmpty {
-                let transcript = ConversationFormatter.format(priorMessages)
-                instructions += "\n\nConversation so far:\n" + transcript
+                        if !priorMessages.isEmpty {
+                            let transcript = ConversationFormatter.format(priorMessages)
+                            instructions += "\n\nConversation so far:\n" + transcript
+                        }
+
+                        let session = LanguageModelSession(instructions: instructions)
+
+                        // The final message should be the user's latest input
+                        let userMessage: String = conversationSnapshot.messages.last?.content ?? ""
+                        let response = try await session.respond(to: userMessage)
+                        let responseText = response.content
+
+                        // Emit the full text as a single delta
+                        continuation.yield(.textDelta(responseText))
+
+                        // Build updated conversation with assistant response appended
+                        let updatedConversation = conversationSnapshot.addingAssistantMessage(responseText)
+
+                        let conversationResponse = LLM.ConversationResponse(
+                            text: responseText,
+                            thinking: nil,
+                            toolCalls: [],
+                            conversation: updatedConversation,
+                            rawResponse: LLM.OpenAICompatibleAPI.ChatCompletionResponse()
+                        )
+                        continuation.yield(.completed(conversationResponse))
+                        continuation.finish()
+                    } catch {
+                        continuation.finish(throwing: error)
+                    }
+                }
             }
-
-            let session = LanguageModelSession(instructions: instructions)
-
-            // The final message should be the user's latest input
-            let userMessage: String = conversation.messages.last?.content ?? ""
-            let response = try await session.respond(to: userMessage)
-            let responseText = response.content
-
-            // Build updated conversation with assistant response appended
-            let updatedConversation = conversation.addingAssistantMessage(responseText)
-
-            return LLMResponse(
-                text: responseText,
-                thinking: nil,
-                toolCalls: [],
-                usage: .zero,
-                conversation: updatedConversation
-            )
         }
     }
 #endif
