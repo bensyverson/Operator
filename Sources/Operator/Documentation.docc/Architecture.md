@@ -8,7 +8,7 @@ The agentic stack is composed of three libraries, each with a distinct responsib
 
 ### LLM
 
-The foundation layer. LLM handles raw communication with language model providers (OpenAI, Anthropic, local models). It is:
+The foundation layer. LLM handles raw communication with language model providers (OpenAI, Anthropic, local models). It is also the layer used by ``AppleIntelligenceService`` to normalize on-device Foundation Model responses into the same format as cloud providers. LLM is:
 
 - **Stateless**: Each call is independent. LLM does not track conversations or tool state.
 - **Provider-agnostic**: A single API surface with provider-specific serialization handled internally.
@@ -89,3 +89,4 @@ Several principles guided the architecture:
 - **Events for observation, middleware for control.** The ``Operation`` stream is a factual log of what happened — consumers use it for display, logging, and downstream decisions. ``Middleware`` is for intercepting and transforming behavior *before* it happens.
 - **Budgets, not unbounded loops.** Every Operative runs within a ``Budget``. There is no "run forever" mode. This is a safety property that also enables Orchestrator to reason about resource allocation.
 - **The LLM decides.** Operator does not impose tool selection heuristics. The language model decides which tools to call, in what order, and when to stop. Middleware can override specific decisions, but the default is to trust the model.
+- **Engine-agnostic.** The ``LLMService`` protocol abstracts over model providers. Cloud LLMs (Claude, GPT) are the primary target, but the same ``Operative`` can be powered by Apple's on-device Foundation Models via ``AppleIntelligenceService`` — see <doc:AppleIntelligence>.

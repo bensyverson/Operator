@@ -77,3 +77,7 @@ for await operation in operative.run("What's the host and port of https://exampl
 - <doc:Middleware>
 - <doc:CompactionMiddleware>
 - <doc:Budget>
+
+### Platform Integrations
+
+- <doc:AppleIntelligence>
