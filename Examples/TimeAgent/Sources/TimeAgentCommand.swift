@@ -22,6 +22,9 @@ struct TimeAgentCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Maximum number of agent turns per response.")
     var maxTurns: Int = 10
 
+    @Flag(name: .shortAndLong, help: "Show detailed debug output on stderr.")
+    var verbose: Bool = false
+
     func run() async throws {
         let operative = try buildOperative()
 
@@ -42,31 +45,90 @@ struct TimeAgentCommand: AsyncParsableCommand {
                 operative.run(input)
             }
 
+            var spinnerTask: Task<Void, Never>?
+            var completedTools = false
+
+            // Ensure the cursor is restored if we exit unexpectedly.
+            defer {
+                spinnerTask?.cancel()
+                Terminal.showCursor()
+            }
+
             for await operation in stream {
                 switch operation {
                 case let .text(chunk):
-                    print(chunk, terminator: "")
+                    if spinnerTask != nil {
+                        spinnerTask?.cancel()
+                        spinnerTask = nil
+                        Terminal.clearLine()
+                    }
+                    if completedTools {
+                        print() // blank line between tool traces and response
+                        completedTools = false
+                    }
+                    Terminal.write(chunk)
+
                 case let .turnStarted(context):
-                    StderrStream.print("  [turn \(context.turnNumber)]")
+                    if verbose {
+                        StderrStream.print("  [turn \(context.turnNumber)]")
+                    } else {
+                        spinnerTask?.cancel()
+                        spinnerTask = Task { await Self.animate("Thinking…") }
+                    }
+
                 case let .toolsRequested(requests):
-                    for request in requests {
-                        StderrStream.print("  [call] \(request.name)")
+                    if verbose {
+                        for request in requests {
+                            StderrStream.print("  [call] \(request.name)")
+                        }
+                    } else {
+                        let names = requests.map(\.name).joined(separator: ", ")
+                        spinnerTask?.cancel()
+                        spinnerTask = Task { await Self.animate("Calling \(names)…") }
                     }
+
                 case let .toolCompleted(request, output):
-                    StderrStream.print("  [done] \(request.name) -> \(output.content.prefix(120))")
-                case let .toolFailed(request, error):
-                    StderrStream.print("  [fail] \(request.name): \(error)")
-                case let .completed(result):
-                    print() // final newline after streamed text
-                    StderrStream.print("  [ok] \(result.turnsUsed) turn(s), \(result.usage.totalTokens) tokens")
-                    lastConversation = result.conversation
-                case let .stopped(reason):
-                    print()
-                    StderrStream.print("  [stopped] \(reason)")
-                    // Keep the conversation even if the budget was hit
-                    if case let .completed(result) = operation {
-                        lastConversation = result.conversation
+                    if verbose {
+                        StderrStream.print("  [done] \(request.name) -> \(output.content.prefix(120))")
+                    } else {
+                        if spinnerTask != nil {
+                            spinnerTask?.cancel()
+                            spinnerTask = nil
+                            Terminal.clearLine()
+                        }
+                        print("  [Tool: \(request.name)]")
+                        completedTools = true
                     }
+
+                case let .toolFailed(request, error):
+                    if spinnerTask != nil {
+                        spinnerTask?.cancel()
+                        spinnerTask = nil
+                        Terminal.clearLine()
+                    }
+                    print("Error: \(request.name) — \(error)")
+
+                case let .completed(result):
+                    if spinnerTask != nil {
+                        spinnerTask?.cancel()
+                        spinnerTask = nil
+                        Terminal.clearLine()
+                    }
+                    print() // final newline after streamed text
+                    if verbose {
+                        StderrStream.print("  [ok] \(result.turnsUsed) turn(s), \(result.usage.totalTokens) tokens")
+                    }
+                    lastConversation = result.conversation
+
+                case let .stopped(reason):
+                    if spinnerTask != nil {
+                        spinnerTask?.cancel()
+                        spinnerTask = nil
+                        Terminal.clearLine()
+                    }
+                    print()
+                    print("Stopped: \(reason)")
+
                 default:
                     break
                 }
@@ -75,6 +137,21 @@ struct TimeAgentCommand: AsyncParsableCommand {
             print() // blank line between exchanges
         }
     }
+
+    // MARK: - Spinner
+
+    private static func animate(_ label: String) async {
+        let frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        Terminal.hideCursor()
+        var i = 0
+        while !Task.isCancelled {
+            Terminal.write("\r\u{1B}[2K\u{1B}[2m\(frames[i % frames.count]) \(label)\u{1B}[0m")
+            i += 1
+            try? await Task.sleep(for: .milliseconds(80))
+        }
+    }
+
+    // MARK: - Operative Setup
 
     private func buildOperative() throws -> Operative {
         let systemPrompt = "You are a helpful assistant with access to time utilities and a key-value store. Use your tools to answer the user's questions accurately."
@@ -155,9 +232,29 @@ struct TimeAgentCommand: AsyncParsableCommand {
     }
 }
 
+// MARK: - Terminal
+
+private enum Terminal {
+    static func write(_ text: String) {
+        FileHandle.standardOutput.write(Data(text.utf8))
+    }
+
+    static func clearLine() {
+        write("\r\u{1B}[2K\u{1B}[?25h")
+    }
+
+    static func hideCursor() {
+        write("\u{1B}[?25l")
+    }
+
+    static func showCursor() {
+        write("\u{1B}[?25h")
+    }
+}
+
 // MARK: - StderrStream
 
-enum StderrStream {
+private enum StderrStream {
     static func print(_ message: String) {
         var stream = Stream()
         Swift.print(message, to: &stream)

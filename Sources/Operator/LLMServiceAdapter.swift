@@ -1,3 +1,4 @@
+import Foundation
 import LLM
 
 /// Internal adapter that wraps an ``LLM`` actor to conform to ``LLMService``.

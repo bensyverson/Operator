@@ -151,15 +151,10 @@ public struct CompactionMiddleware: Middleware, Sendable {
                 messages[i] = Message(role: .assistant, content: summary)
 
                 // Remove corresponding tool result messages
-                var j = i + 1
-                while j < min(preserveAfter, messages.count) {
-                    if messages[j].role == .tool {
-                        messages.remove(at: j)
-                        // Adjust preserveAfter isn't possible (it's let), but the boundary
-                        // naturally shifts since we're removing messages before it
-                    } else {
-                        break
-                    }
+                let j = i + 1
+                while j < min(preserveAfter, messages.count), messages[j].role == .tool {
+                    messages.remove(at: j)
+                    // Don't increment j — the next message slides into this index
                 }
             }
             i += 1
