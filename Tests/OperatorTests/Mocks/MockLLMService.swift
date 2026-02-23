@@ -1,5 +1,5 @@
 import LLM
-@testable import Operator
+import Operator
 
 /// A mock LLM service that returns scripted responses in order.
 ///
