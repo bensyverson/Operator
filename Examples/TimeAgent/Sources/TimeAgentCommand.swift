@@ -10,7 +10,7 @@ struct TimeAgentCommand: AsyncParsableCommand {
         abstract: "A demo CLI agent with time utilities and a key-value store."
     )
 
-    @Option(name: .long, help: "LLM provider: openai, anthropic, or lmstudio. Auto-detects from API key env vars if omitted.")
+    @Option(name: .long, help: "LLM provider: openai, anthropic, lmstudio, or apple. Auto-detects from API key env vars if omitted.")
     var provider: String?
 
     @Option(name: .long, help: "API key for the provider. Falls back to OPENAI_API_KEY or ANTHROPIC_API_KEY.")
@@ -23,23 +23,7 @@ struct TimeAgentCommand: AsyncParsableCommand {
     var maxTurns: Int = 10
 
     func run() async throws {
-        let resolvedProvider = try resolveProvider()
-        let llm = LLM(provider: resolvedProvider)
-
-        let resolvedModelType: LLM.ModelType = switch modelType {
-        case "flagship": .flagship
-        default: .fast
-        }
-
-        let config = LLM.ConversationConfiguration(modelType: resolvedModelType, maxTokens: 4096)
-
-        let operative = try Operative(
-            llm: llm,
-            systemPrompt: "You are a helpful assistant with access to time utilities and a key-value store. Use your tools to answer the user's questions accurately.",
-            tools: [TimeTool(), KeyValueStore()],
-            budget: Budget(maxTurns: maxTurns),
-            configuration: config
-        )
+        let operative = try buildOperative()
 
         print("TimeAgent ready. Type your message, or \"quit\" to exit.\n")
 
@@ -92,6 +76,47 @@ struct TimeAgentCommand: AsyncParsableCommand {
         }
     }
 
+    private func buildOperative() throws -> Operative {
+        let systemPrompt = "You are a helpful assistant with access to time utilities and a key-value store. Use your tools to answer the user's questions accurately."
+        let tools: [any Operable] = [TimeTool(), KeyValueStore()]
+        let budget = Budget(maxTurns: maxTurns)
+
+        #if canImport(FoundationModels)
+            if provider?.lowercased() == "apple" {
+                guard #available(macOS 26.0, iOS 26.0, *) else {
+                    throw ValidationError("Apple Intelligence requires macOS 26.0 or later.")
+                }
+                return try Operative(
+                    name: "TimeAgent",
+                    description: "A demo agent with time utilities and a key-value store",
+                    systemPrompt: systemPrompt,
+                    tools: tools,
+                    budget: budget
+                )
+            }
+        #endif
+
+        let resolvedProvider = try resolveProvider()
+        let llm = LLM(provider: resolvedProvider)
+
+        let resolvedModelType: LLM.ModelType = switch modelType {
+        case "flagship": .flagship
+        default: .fast
+        }
+
+        let config = LLM.ConversationConfiguration(modelType: resolvedModelType, maxTokens: 4096)
+
+        return try Operative(
+            name: "TimeAgent",
+            description: "A demo agent with time utilities and a key-value store",
+            llm: llm,
+            systemPrompt: systemPrompt,
+            tools: tools,
+            budget: budget,
+            configuration: config
+        )
+    }
+
     private func resolveProvider() throws -> LLM.Provider {
         let env = ProcessInfo.processInfo.environment
 
@@ -110,8 +135,10 @@ struct TimeAgentCommand: AsyncParsableCommand {
                 return .anthropic(apiKey: key)
             case "lmstudio":
                 return .lmStudio
+            case "apple":
+                throw ValidationError("Apple Intelligence is not available on this platform.")
             default:
-                throw ValidationError("Unknown provider '\(provider)'. Use openai, anthropic, or lmstudio.")
+                throw ValidationError("Unknown provider '\(provider)'. Use openai, anthropic, lmstudio, or apple.")
             }
         }
 
