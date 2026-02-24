@@ -125,9 +125,70 @@ MCP tools describe their parameters using JSON Schema. Operator's `JSONSchema` t
 - ``MCPConnectionError/toolCallFailed(toolName:message:)`` — Thrown when an MCP tool reports an error in its response.
 - ``MCPConnectionError/schemaConversionFailed(toolName:underlyingError:)`` — Thrown when a tool's JSON Schema cannot be decoded.
 
+## Exposing an Operative as an MCP Server
+
+``OperativeMCPServer`` wraps an Operative and exposes it as an MCP tool server. External clients — such as Claude Desktop, other MCP-aware applications, or your own tools — can invoke the agent and maintain multi-turn conversations using session IDs.
+
+The server exposes a single tool called `run` with two parameters:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message` | string | yes | The user message to send |
+| `session_id` | string | no | Continue an existing conversation |
+
+### Example: Stdio Transport
+
+When your application runs as a subprocess (e.g., invoked by Claude Desktop), use a `StdioTransport`:
+
+```swift
+import MCP
+import Operator
+
+let operative = try Operative(
+    name: "Assistant",
+    description: "A helpful assistant",
+    llm: myLLM,
+    systemPrompt: "You are a helpful assistant.",
+    tools: [myTools],
+    budget: Budget(maxTurns: 10)
+)
+
+let server = OperativeMCPServer(operative: operative)
+let transport = StdioTransport()
+try await server.start(transport: transport)
+```
+
+### Example: In-Memory Transport (Testing)
+
+For unit tests or embedded scenarios, use `InMemoryTransport`:
+
+```swift
+import MCP
+
+let (clientTransport, serverTransport) = await InMemoryTransport.createConnectedPair()
+try await server.start(transport: serverTransport)
+
+let client = MCP.Client(name: "test", version: "1.0.0")
+try await client.connect(transport: clientTransport)
+
+let (content, _) = try await client.callTool(
+    name: "run",
+    arguments: ["message": .string("Hello!")]
+)
+```
+
+### Session Management
+
+Each call to `run` without a `session_id` creates a new session. The response includes a `session_id` that the client can pass in subsequent calls to continue the conversation with full history. Sessions are stored in memory for the lifetime of the server.
+
 ## Topics
 
-### Connection
+### Connection (Client)
 
 - ``MCPConnection``
 - ``MCPConnectionError``
+
+### Server
+
+- ``OperativeMCPServer``
+- ``OperativeMCPServerError``
