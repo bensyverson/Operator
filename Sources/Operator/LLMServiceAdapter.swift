@@ -23,6 +23,20 @@ public struct LLMServiceAdapter: LLMService {
         self.llm = llm
     }
 
+    /// Creates an adapter from a ``Provider``, constructing the ``LLM`` actor internally.
+    ///
+    /// This is the preferred initializer for consumers that don't need direct
+    /// access to the ``LLM`` actor — it avoids requiring `import LLM`.
+    ///
+    /// ```swift
+    /// let service = LLMServiceAdapter(provider: .anthropic(apiKey: key))
+    /// ```
+    ///
+    /// - Parameter provider: The LLM provider to use.
+    public init(provider: Provider) {
+        llm = LLM(provider: provider)
+    }
+
     public func chat(conversation: Conversation) -> AsyncThrowingStream<StreamEvent, Error> {
         let service = llm
         let conversationSnapshot = conversation
