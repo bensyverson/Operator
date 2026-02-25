@@ -21,7 +21,7 @@
         /// Creates an Apple Intelligence service.
         public init() {}
 
-        public func chat(conversation: LLM.Conversation) -> AsyncThrowingStream<LLM.StreamEvent, Error> {
+        public func chat(conversation: Conversation) -> AsyncThrowingStream<StreamEvent, Error> {
             let conversationSnapshot = conversation
             return AsyncThrowingStream { continuation in
                 Task {
@@ -48,7 +48,7 @@
                         // Build updated conversation with assistant response appended
                         let updatedConversation = conversationSnapshot.addingAssistantMessage(responseText)
 
-                        let conversationResponse = LLM.ConversationResponse(
+                        let conversationResponse = ConversationResponse(
                             text: responseText,
                             thinking: nil,
                             toolCalls: [],

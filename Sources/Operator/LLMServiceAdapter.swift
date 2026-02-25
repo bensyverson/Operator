@@ -1,19 +1,29 @@
 import Foundation
 import LLM
 
-/// Internal adapter that wraps an ``LLM`` actor to conform to ``LLMService``.
+/// Adapter that wraps an ``LLM`` actor to conform to ``LLMService``.
 ///
-/// Users never interact with this type directly. The ``Operative``
-/// convenience initializer that accepts an ``LLM`` instance creates
-/// one automatically.
-struct LLMServiceAdapter: LLMService {
+/// The ``Operative`` convenience initializer that accepts an ``LLM`` instance
+/// creates one automatically. You can also create one directly when you need
+/// an ``LLMService`` value — for example, to populate the model tier map
+/// passed to `Organization`:
+///
+/// ```swift
+/// let llm = LLM(provider: .anthropic(apiKey: key))
+/// let service = LLMServiceAdapter(llm)
+/// let models: [ModelTier: any LLMService] = [.standard: service]
+/// ```
+public struct LLMServiceAdapter: LLMService {
     private let llm: LLM
 
-    init(_ llm: LLM) {
+    /// Creates an adapter wrapping the given ``LLM`` actor.
+    ///
+    /// - Parameter llm: The LLM actor to wrap.
+    public init(_ llm: LLM) {
         self.llm = llm
     }
 
-    func chat(conversation: LLM.Conversation) -> AsyncThrowingStream<LLM.StreamEvent, Error> {
+    public func chat(conversation: Conversation) -> AsyncThrowingStream<StreamEvent, Error> {
         let service = llm
         let conversationSnapshot = conversation
         return AsyncThrowingStream { continuation in

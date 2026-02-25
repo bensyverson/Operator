@@ -14,10 +14,10 @@ extension Operative {
         var config = configuration
         config.tools = toolDefinitions.isEmpty ? nil : toolDefinitions
 
-        let conversation = LLM.Conversation(
+        let conversation = Conversation(
             systemPrompt: systemPrompt,
             messages: [
-                LLM.OpenAICompatibleAPI.ChatMessage(content: userMessage, role: .user),
+                ChatMessage(content: userMessage, role: .user),
             ],
             configuration: config
         )
@@ -40,10 +40,10 @@ extension Operative {
     ///   - userMessage: The next user message.
     ///   - conversation: The conversation from a previous ``OperativeResult``.
     /// - Returns: A stream of operation events.
-    public func run(_ userMessage: String, continuing conversation: LLM.Conversation) -> OperationStream {
+    public func run(_ userMessage: String, continuing conversation: Conversation) -> OperationStream {
         var continued = conversation
         continued.messages.append(
-            LLM.OpenAICompatibleAPI.ChatMessage(content: userMessage, role: .user)
+            ChatMessage(content: userMessage, role: .user)
         )
         // Ensure tools are still present in the configuration
         if continued.configuration.tools == nil, !toolDefinitions.isEmpty {
@@ -54,7 +54,7 @@ extension Operative {
 
     // MARK: - Private
 
-    private func runLoop(with initialConversation: LLM.Conversation) -> OperationStream {
+    private func runLoop(with initialConversation: Conversation) -> OperationStream {
         OperationStream { continuation in
             Task {
                 await executeLoop(conversation: initialConversation, continuation: continuation)
@@ -64,7 +64,7 @@ extension Operative {
     }
 
     private func executeLoop(
-        conversation initialConversation: LLM.Conversation,
+        conversation initialConversation: Conversation,
         continuation: OperationStream.Continuation
     ) async {
         var conversation = initialConversation
@@ -251,11 +251,11 @@ extension Operative {
             }
 
             // Add assistant tool call message to conversation
-            let toolCalls: [LLM.OpenAICompatibleAPI.ToolCall] = toolRequests.map { req in
-                LLM.OpenAICompatibleAPI.ToolCall(
+            let toolCalls: [LLMToolCall] = toolRequests.map { req in
+                LLMToolCall(
                     id: req.toolCallId,
                     type: "function",
-                    function: LLM.OpenAICompatibleAPI.FunctionCall(
+                    function: FunctionCall(
                         name: req.name,
                         arguments: req.arguments
                     )
@@ -466,7 +466,7 @@ extension Operative {
     /// to the operation continuation as they arrive, and returning the
     /// completed ``LLMResponse`` when the stream finishes.
     private func consumeStream(
-        _ stream: AsyncThrowingStream<LLM.StreamEvent, Error>,
+        _ stream: AsyncThrowingStream<StreamEvent, Error>,
         continuation: OperationStream.Continuation
     ) async throws -> LLMResponse {
         for try await event in stream {

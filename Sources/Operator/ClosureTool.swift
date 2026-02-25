@@ -4,11 +4,11 @@ import LLM
 /// A closure-based tool implementation created via the ``Tool(name:description:input:execute:)``
 /// and ``Tool(name:description:execute:)`` factory functions.
 public struct ClosureTool<Input: ToolInput>: ToolProvider {
-    public let definition: LLM.OpenAICompatibleAPI.ToolDefinition
+    public let definition: ToolDefinition
     private let execute: @Sendable (Input) async throws -> ToolOutput
 
     init(
-        definition: LLM.OpenAICompatibleAPI.ToolDefinition,
+        definition: ToolDefinition,
         execute: @escaping @Sendable (Input) async throws -> ToolOutput
     ) {
         self.definition = definition
@@ -62,8 +62,8 @@ public func Tool<Input: ToolInput>(
     execute: @escaping @Sendable (Input) async throws -> ToolOutput
 ) throws -> any ToolProvider {
     let schema = try SchemaExtractingDecoder.extractSchema(from: Input.self)
-    let definition = LLM.OpenAICompatibleAPI.ToolDefinition(
-        function: LLM.OpenAICompatibleAPI.FunctionDefinition(
+    let definition = ToolDefinition(
+        function: FunctionDefinition(
             name: name,
             description: description,
             parameters: schema
@@ -90,11 +90,11 @@ public func Tool(
     description: String,
     execute: @escaping @Sendable () async throws -> ToolOutput
 ) -> any ToolProvider {
-    let definition = LLM.OpenAICompatibleAPI.ToolDefinition(
-        function: LLM.OpenAICompatibleAPI.FunctionDefinition(
+    let definition = ToolDefinition(
+        function: FunctionDefinition(
             name: name,
             description: description,
-            parameters: LLM.OpenAICompatibleAPI.JSONSchema.object(properties: [:])
+            parameters: JSONSchema.object(properties: [:])
         )
     )
     return ClosureTool<EmptyToolInput>(definition: definition) { _ in

@@ -31,13 +31,13 @@ public enum SchemaExtractingDecoder {
     /// - Returns: A ``JSONSchema`` representing the type's parameters.
     /// - Throws: ``SchemaExtractionError`` if ``ToolInput/paramDescriptions``
     ///   contains keys that don't match any property.
-    public static func extractSchema<T: ToolInput>(from type: T.Type) throws -> LLM.OpenAICompatibleAPI.JSONSchema {
+    public static func extractSchema<T: ToolInput>(from type: T.Type) throws -> JSONSchema {
         let decoder = DecoderImpl()
         _ = try T(from: decoder)
 
         guard let recorder = decoder.propertyRecorder else {
             // Type decoded via single value or unkeyed — treat as empty object
-            return LLM.OpenAICompatibleAPI.JSONSchema.object(properties: [:])
+            return JSONSchema.object(properties: [:])
         }
 
         // Validate paramDescriptions keys
@@ -52,7 +52,7 @@ public enum SchemaExtractingDecoder {
         }
 
         // Build properties dict and required list
-        var properties: [String: LLM.OpenAICompatibleAPI.JSONSchema] = [:]
+        var properties: [String: JSONSchema] = [:]
         var required: [String] = []
 
         for prop in recorder.properties {
@@ -66,7 +66,7 @@ public enum SchemaExtractingDecoder {
             }
         }
 
-        return LLM.OpenAICompatibleAPI.JSONSchema.object(
+        return JSONSchema.object(
             properties: properties,
             required: required.isEmpty ? nil : required
         )
@@ -78,7 +78,7 @@ public enum SchemaExtractingDecoder {
 extension SchemaExtractingDecoder {
     struct RecordedProperty {
         let name: String
-        let schema: LLM.OpenAICompatibleAPI.JSONSchema
+        let schema: JSONSchema
         let isRequired: Bool
     }
 
@@ -312,7 +312,7 @@ extension SchemaExtractingDecoder {
 
         // MARK: Helpers
 
-        private func record(key: Key, schema: LLM.OpenAICompatibleAPI.JSONSchema, isRequired: Bool) {
+        private func record(key: Key, schema: JSONSchema, isRequired: Bool) {
             recorder.properties.append(RecordedProperty(
                 name: key.stringValue,
                 schema: schema,
@@ -321,7 +321,7 @@ extension SchemaExtractingDecoder {
         }
 
         /// Resolves a generic Decodable type to its JSON Schema and a dummy value.
-        private func resolveType<T: Decodable>(_ type: T.Type) throws -> (LLM.OpenAICompatibleAPI.JSONSchema, T) {
+        private func resolveType<T: Decodable>(_ type: T.Type) throws -> (JSONSchema, T) {
             // 1. SchemaLeaf
             if let leafType = type as? any SchemaLeaf.Type {
                 let schema = leafType.jsonSchema
@@ -340,13 +340,13 @@ extension SchemaExtractingDecoder {
             let value = try T(from: nestedDecoder)
 
             if let recorder = nestedDecoder.propertyRecorder {
-                var properties: [String: LLM.OpenAICompatibleAPI.JSONSchema] = [:]
+                var properties: [String: JSONSchema] = [:]
                 var required: [String] = []
                 for prop in recorder.properties {
                     properties[prop.name] = prop.schema
                     if prop.isRequired { required.append(prop.name) }
                 }
-                let schema = LLM.OpenAICompatibleAPI.JSONSchema.object(
+                let schema = JSONSchema.object(
                     properties: properties,
                     required: required.isEmpty ? nil : required
                 )
@@ -355,7 +355,7 @@ extension SchemaExtractingDecoder {
 
             if let unkeyedContainer = nestedDecoder.unkeyedContainerImpl {
                 let itemSchema = unkeyedContainer.elementSchema ?? .string()
-                let schema = LLM.OpenAICompatibleAPI.JSONSchema.array(items: itemSchema)
+                let schema = JSONSchema.array(items: itemSchema)
                 return (schema, value)
             }
 
@@ -366,7 +366,7 @@ extension SchemaExtractingDecoder {
             return (.string(), value)
         }
 
-        private func extractEnumSchema(_ type: (some Any).Type) -> LLM.OpenAICompatibleAPI.JSONSchema? {
+        private func extractEnumSchema(_ type: (some Any).Type) -> JSONSchema? {
             guard let caseIterableType = type as? any CaseIterable.Type else {
                 return nil
             }
@@ -393,7 +393,7 @@ extension SchemaExtractingDecoder {
         }
 
         var currentIndex: Int = 0
-        var elementSchema: LLM.OpenAICompatibleAPI.JSONSchema?
+        var elementSchema: JSONSchema?
 
         init(codingPath: [CodingKey]) {
             self.codingPath = codingPath
@@ -484,7 +484,7 @@ extension SchemaExtractingDecoder {
             let value = try T(from: nestedDecoder)
 
             if let recorder = nestedDecoder.propertyRecorder {
-                var properties: [String: LLM.OpenAICompatibleAPI.JSONSchema] = [:]
+                var properties: [String: JSONSchema] = [:]
                 var required: [String] = []
                 for prop in recorder.properties {
                     properties[prop.name] = prop.schema
@@ -518,7 +518,7 @@ extension SchemaExtractingDecoder {
 extension SchemaExtractingDecoder {
     final class SingleValueContainerImpl: SingleValueDecodingContainer {
         var codingPath: [CodingKey]
-        var recordedSchema: LLM.OpenAICompatibleAPI.JSONSchema?
+        var recordedSchema: JSONSchema?
 
         init(codingPath: [CodingKey]) {
             self.codingPath = codingPath
@@ -606,10 +606,10 @@ private extension CaseIterable {
 
 // MARK: - JSONSchema Description Helper
 
-extension LLM.OpenAICompatibleAPI.JSONSchema {
+extension JSONSchema {
     /// Returns a new schema with the given description, preserving all other fields.
-    func withDescription(_ description: String) -> LLM.OpenAICompatibleAPI.JSONSchema {
-        LLM.OpenAICompatibleAPI.JSONSchema(
+    func withDescription(_ description: String) -> JSONSchema {
+        JSONSchema(
             type: type,
             properties: properties,
             items: items,

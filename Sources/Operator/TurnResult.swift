@@ -18,14 +18,14 @@ public struct TurnResult: Friendly {
     /// Includes the full message history up to and including this turn's
     /// assistant response and any tool results. Useful for context transfer
     /// when spawning child agents mid-execution.
-    public let conversation: LLM.Conversation
+    public let conversation: Conversation
 
     /// Creates a turn result with the given usage, tool call count, cumulative usage, and conversation.
     public init(
         usage: TokenUsage,
         toolCallCount: Int,
         cumulativeUsage: TokenUsage,
-        conversation: LLM.Conversation
+        conversation: Conversation
     ) {
         self.usage = usage
         self.toolCallCount = toolCallCount

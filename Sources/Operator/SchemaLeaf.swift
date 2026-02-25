@@ -14,7 +14,7 @@ import LLM
 /// of them (arrays, nested `Codable` structs) do not need this conformance.
 public protocol SchemaLeaf: Codable, Sendable {
     /// The JSON Schema representation of this type.
-    static var jsonSchema: LLM.OpenAICompatibleAPI.JSONSchema { get }
+    static var jsonSchema: JSONSchema { get }
 
     /// A placeholder value used during schema extraction.
     ///

@@ -32,10 +32,10 @@ public struct Operative: Sendable {
     let toolRegistry: [String: any ToolProvider]
 
     /// Tool definitions sent to the LLM.
-    let toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition]
+    let toolDefinitions: [ToolDefinition]
 
     /// Configuration passed through to LLM conversations.
-    let configuration: LLM.ConversationConfiguration
+    let configuration: ConversationConfiguration
 
     /// Creates an Operative with an ``LLMService`` (protocol-based, for testability).
     ///
@@ -57,7 +57,7 @@ public struct Operative: Sendable {
         tools: [any Operable],
         budget: Budget,
         middleware: [any Middleware] = [],
-        configuration: LLM.ConversationConfiguration = LLM.ConversationConfiguration()
+        configuration: ConversationConfiguration = ConversationConfiguration()
     ) throws {
         self.name = name
         self.description = description
@@ -69,7 +69,7 @@ public struct Operative: Sendable {
 
         // Flatten all tool groups into a single registry
         var registry = [String: any ToolProvider]()
-        var definitions = [LLM.OpenAICompatibleAPI.ToolDefinition]()
+        var definitions = [ToolDefinition]()
 
         for operable in tools {
             let group = operable.toolGroup
@@ -92,9 +92,59 @@ public struct Operative: Sendable {
         toolDefinitions = definitions
     }
 
+    /// Creates an Operative with a ``Provider``.
+    ///
+    /// This convenience initializer creates the underlying LLM service
+    /// from the provider configuration. Consumers never need to import
+    /// the LLM library directly.
+    ///
+    /// ```swift
+    /// let agent = try Operative(
+    ///     name: "Assistant",
+    ///     description: "A helpful assistant",
+    ///     provider: .anthropic(apiKey: key),
+    ///     systemPrompt: "You are helpful.",
+    ///     tools: [MyTool()],
+    ///     budget: Budget(maxTurns: 10)
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - name: A human-readable name for this agent.
+    ///   - description: A brief description of this agent's purpose.
+    ///   - provider: The LLM provider to use (e.g., `.anthropic(apiKey:)`).
+    ///   - systemPrompt: The base system prompt sent with every request.
+    ///   - tools: Operable conformers whose tools the agent can call.
+    ///   - budget: Resource limits for the run.
+    ///   - middleware: Ordered middleware pipeline.
+    ///   - configuration: Conversation configuration.
+    /// - Throws: ``OperativeError/duplicateToolName(_:)`` if tool names collide.
+    public init(
+        name: String,
+        description: String,
+        provider: Provider,
+        systemPrompt: String,
+        tools: [any Operable],
+        budget: Budget,
+        middleware: [any Middleware] = [],
+        configuration: ConversationConfiguration = ConversationConfiguration()
+    ) throws {
+        try self.init(
+            name: name,
+            description: description,
+            llm: LLMServiceAdapter(LLM(provider: provider)),
+            systemPrompt: systemPrompt,
+            tools: tools,
+            budget: budget,
+            middleware: middleware,
+            configuration: configuration
+        )
+    }
+
     /// Creates an Operative with an ``LLM`` actor directly.
     ///
-    /// This convenience initializer wraps the actor in an internal adapter.
+    /// Prefer the ``init(name:description:provider:systemPrompt:tools:budget:middleware:configuration:)``
+    /// initializer to avoid importing the LLM library directly.
     ///
     /// - Parameters:
     ///   - name: A human-readable name for this agent.
@@ -104,7 +154,7 @@ public struct Operative: Sendable {
     ///   - tools: Operable conformers whose tools the agent can call.
     ///   - budget: Resource limits for the run.
     ///   - middleware: Ordered middleware pipeline.
-    ///   - configuration: LLM conversation configuration.
+    ///   - configuration: Conversation configuration.
     /// - Throws: ``OperativeError/duplicateToolName(_:)`` if tool names collide.
     public init(
         name: String,
@@ -114,7 +164,7 @@ public struct Operative: Sendable {
         tools: [any Operable],
         budget: Budget,
         middleware: [any Middleware] = [],
-        configuration: LLM.ConversationConfiguration = LLM.ConversationConfiguration()
+        configuration: ConversationConfiguration = ConversationConfiguration()
     ) throws {
         try self.init(
             name: name,

@@ -19,10 +19,10 @@ public struct LLMResponse: Sendable {
     public let usage: TokenUsage
 
     /// The conversation with the assistant's response appended.
-    public let conversation: LLM.Conversation
+    public let conversation: Conversation
 
     /// Creates an LLM response from a completed conversation response.
-    public init(from response: LLM.ConversationResponse) {
+    public init(from response: ConversationResponse) {
         text = response.text
         thinking = response.thinking
         toolCalls = response.toolCalls.map { ToolRequest(from: $0) }
@@ -36,7 +36,7 @@ public struct LLMResponse: Sendable {
         thinking: String? = nil,
         toolCalls: [ToolRequest],
         usage: TokenUsage,
-        conversation: LLM.Conversation
+        conversation: Conversation
     ) {
         self.text = text
         self.thinking = thinking

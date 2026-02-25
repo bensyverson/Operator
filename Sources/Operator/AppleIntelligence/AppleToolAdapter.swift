@@ -27,7 +27,7 @@
         where T.Arguments: Decodable
     {
         /// The tool definition exposed to the LLM.
-        public let definition: LLM.OpenAICompatibleAPI.ToolDefinition
+        public let definition: ToolDefinition
 
         private let tool: T
 
@@ -40,10 +40,10 @@
         /// - Parameters:
         ///   - tool: The Apple `FoundationModels.Tool` to wrap.
         ///   - parameterSchema: The JSON Schema describing the tool's parameters.
-        public init(tool: T, parameterSchema: LLM.OpenAICompatibleAPI.JSONSchema) {
+        public init(tool: T, parameterSchema: JSONSchema) {
             self.tool = tool
-            definition = LLM.OpenAICompatibleAPI.ToolDefinition(
-                function: LLM.OpenAICompatibleAPI.FunctionDefinition(
+            definition = ToolDefinition(
+                function: FunctionDefinition(
                     name: tool.name,
                     description: tool.description,
                     parameters: parameterSchema
@@ -61,8 +61,8 @@
         public init(tool: T) throws where T.Arguments: ToolInput {
             self.tool = tool
             let schema = try SchemaExtractingDecoder.extractSchema(from: T.Arguments.self)
-            definition = LLM.OpenAICompatibleAPI.ToolDefinition(
-                function: LLM.OpenAICompatibleAPI.FunctionDefinition(
+            definition = ToolDefinition(
+                function: FunctionDefinition(
                     name: tool.name,
                     description: tool.description,
                     parameters: schema

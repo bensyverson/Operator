@@ -10,7 +10,7 @@ import LLM
 /// See <doc:ToolsAndOperables> for usage guidance.
 public protocol ToolProvider: Sendable {
     /// The LLM-facing definition: name, description, and parameter schema.
-    var definition: LLM.OpenAICompatibleAPI.ToolDefinition { get }
+    var definition: ToolDefinition { get }
 
     /// Executes the tool with the given arguments.
     ///

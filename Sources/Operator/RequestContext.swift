@@ -9,7 +9,7 @@ public struct RequestContext: Friendly {
     public var messages: [Message]
 
     /// The tool definitions that will accompany the request.
-    public var toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition]
+    public var toolDefinitions: [ToolDefinition]
 
     /// Active pressure signals, if any.
     ///
@@ -20,7 +20,7 @@ public struct RequestContext: Friendly {
     /// Creates a request context with the given messages, tool definitions, and pressure signals.
     public init(
         messages: [Message],
-        toolDefinitions: [LLM.OpenAICompatibleAPI.ToolDefinition],
+        toolDefinitions: [ToolDefinition],
         pressure: [PressureInfo] = []
     ) {
         self.messages = messages

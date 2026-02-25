@@ -3,7 +3,7 @@ import LLM
 
 extension URL: SchemaLeaf {
     /// The JSON schema representation for URL values.
-    public static var jsonSchema: LLM.OpenAICompatibleAPI.JSONSchema {
+    public static var jsonSchema: JSONSchema {
         .string()
     }
 
@@ -15,7 +15,7 @@ extension URL: SchemaLeaf {
 
 extension Date: SchemaLeaf {
     /// The JSON schema representation for Date values.
-    public static var jsonSchema: LLM.OpenAICompatibleAPI.JSONSchema {
+    public static var jsonSchema: JSONSchema {
         .string(description: "ISO 8601 date string")
     }
 
@@ -27,7 +27,7 @@ extension Date: SchemaLeaf {
 
 extension UUID: SchemaLeaf {
     /// The JSON schema representation for UUID values.
-    public static var jsonSchema: LLM.OpenAICompatibleAPI.JSONSchema {
+    public static var jsonSchema: JSONSchema {
         .string(description: "UUID string")
     }
 

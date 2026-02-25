@@ -8,7 +8,7 @@ public struct OperativeResult: Friendly {
     public let text: String?
 
     /// The full conversation history, including all tool calls and results.
-    public let conversation: LLM.Conversation
+    public let conversation: Conversation
 
     /// Aggregate token usage for the entire run.
     public let usage: TokenUsage
@@ -19,7 +19,7 @@ public struct OperativeResult: Friendly {
     /// Creates an operative result with the given text, conversation, usage, and turn count.
     public init(
         text: String?,
-        conversation: LLM.Conversation,
+        conversation: Conversation,
         usage: TokenUsage,
         turnsUsed: Int
     ) {
