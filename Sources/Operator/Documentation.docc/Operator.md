@@ -10,9 +10,9 @@ Operator sits in the middle of a three-layer architecture:
 
 - **LLM** — Handles raw model communication: sending prompts, receiving responses, managing rate limits. Stateless and provider-agnostic.
 - **Operator** — Runs the agent loop. Manages tools, middleware, budgets, and streams real-time events. This is the library you're reading about.
-- **Orchestrator** *(future)* — Composes agents into higher-level workflows: parallel execution, sub-agents, planning, memory, and skills.
+- **[OperativeKit](https://github.com/bensyverson/OperativeKit)** — Composes agents into higher-level workflows: parallel execution, sub-agents, planning, memory, and skills.
 
-Most applications need only Operator. Reach for Orchestrator when you need to coordinate multiple agents or implement complex agentic patterns.
+Most applications need only Operator. Reach for OperativeKit when you need to coordinate multiple agents or implement complex agentic patterns.
 
 ### Quick Example
 

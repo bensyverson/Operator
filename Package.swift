@@ -16,7 +16,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "git@git.mattebox.com:ben/LLM.git", branch: "main"),
+        .package(url: "https://github.com/bensyverson/LLM", branch: "main"),
         .package(url: "https://github.com/modelcontextprotocol/swift-sdk", from: "0.11.0"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.3.0"),
     ],

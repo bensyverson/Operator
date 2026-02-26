@@ -147,7 +147,7 @@ enum ToolCallDecision {
 
 The decision defaults to ``.proceed``. Middleware can flip it to ``.reject`` or ``.modify`` for any tool call in the batch.
 
-This is the mechanism for **tool approval**. An Orchestrator-supplied middleware could prompt the user for confirmation:
+This is the mechanism for **tool approval**. An OperativeKit-supplied middleware could prompt the user for confirmation:
 
 ```swift
 struct UserApprovalMiddleware: Middleware {

@@ -7,7 +7,7 @@ The real-time event stream emitted by a running Operative.
 When an ``Operative`` runs, it produces an ``AsyncSequence`` of ``Operation`` values. Each Operation represents a discrete, observable moment in the agent's lifecycle. The stream serves two purposes:
 
 1. **Display**: Applications use Operations to show users what the agent is doing — streaming text, listing tool calls, showing progress.
-2. **Observation**: Orchestrator (or any upstream consumer) uses Operations to make decisions — tracking token consumption, detecting patterns, deciding when to intervene.
+2. **Observation**: OperativeKit (or any upstream consumer) uses Operations to make decisions — tracking token consumption, detecting patterns, deciding when to intervene.
 
 Operations are **not** a control mechanism. They describe what happened or is happening. To *change* agent behavior, use <doc:Middleware>.
 
@@ -200,7 +200,7 @@ Carried by ``stopped``. An enum indicating why the agent was halted. See the ter
 
 ### Why an event stream instead of callbacks?
 
-An ``AsyncSequence`` composes naturally with Swift's concurrency model. Consumers can use `for await`, `map`, `filter`, `reduce`, or any async sequence operator. There's no need for a delegate protocol with ten optional methods, and no risk of callback ordering issues. The stream also gives Orchestrator a clean interface for observing child agents.
+An ``AsyncSequence`` composes naturally with Swift's concurrency model. Consumers can use `for await`, `map`, `filter`, `reduce`, or any async sequence operator. There's no need for a delegate protocol with ten optional methods, and no risk of callback ordering issues. The stream also gives OperativeKit a clean interface for observing child agents.
 
 ### Why are tool events split into requested/rejected/completed/failed?
 

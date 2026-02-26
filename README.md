@@ -1,6 +1,6 @@
 # Operator
 
-A Swift library for building tool-using AI agents.
+A Swift library for building tool-using AI [agents](https://simonwillison.net/2025/Sep/18/agents/).
 
 ## Architecture
 
@@ -8,11 +8,11 @@ Operator sits in the middle of a three-layer stack:
 
 | Layer | Role |
 |-------|------|
-| **[LLM](https://git.mattebox.com/ben/LLM)** | Raw model communication — stateless, provider-agnostic |
-| **Operator** | Agent loop — tools, middleware, budgets, streaming events |
-| **Orchestrator** *(future)* | Multi-agent composition — sub-agents, planning, memory |
+| **[OperativeKit](https://github.com/bensyverson/OperativeKit)** | Multi-agent composition based on fixed or dynamic graphs |
+| **Operator** (this repo) | Agent loop — tools, middleware, budgets, streaming events |
+| **[LLM](https://github.com/bensyverson/Operator)** | Raw model communication — stateless, provider-agnostic |
 
-Most applications need only Operator. Reach for Orchestrator when you need to coordinate multiple agents.
+Many chatbot applications would only need Operator. Reach for [OperativeKit](https://github.com/bensyverson/OperativeKit) when you need to coordinate multiple agents or design more complex workflows.
 
 ## Quick Example
 
@@ -89,7 +89,7 @@ Add Operator as a Swift Package Manager dependency:
 
 ```swift
 dependencies: [
-    .package(url: "git@git.mattebox.com:ben/Operator.git", branch: "main"),
+    .package(url: "https://github.com/bensyverson/Operator", branch: "main"),
 ]
 ```
 
@@ -114,3 +114,11 @@ See [`Examples/TimeAgent/`](Examples/TimeAgent/) for an interactive CLI agent th
 cd Examples/TimeAgent
 swift run TimeAgent
 ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2026 Ben Syverson

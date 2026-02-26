@@ -66,7 +66,7 @@ struct TimeAgentCommand: AsyncParsableCommand {
                         print() // blank line between tool traces and response
                         completedTools = false
                     }
-                    Terminal.write(chunk)
+                    Terminal.write(Terminal.bold(chunk))
 
                 case let .turnStarted(context):
                     if verbose {
@@ -96,7 +96,7 @@ struct TimeAgentCommand: AsyncParsableCommand {
                             spinnerTask = nil
                             Terminal.clearLine()
                         }
-                        print("  [Tool: \(request.name)]")
+                        print(Terminal.dim("  [Tool: \(request.name)]"))
                         completedTools = true
                     }
 
@@ -114,6 +114,7 @@ struct TimeAgentCommand: AsyncParsableCommand {
                         spinnerTask = nil
                         Terminal.clearLine()
                     }
+                    Terminal.write(Terminal.reset)
                     print() // final newline after streamed text
                     if verbose {
                         StderrStream.print("  [ok] \(result.turnsUsed) turn(s), \(result.usage.totalTokens) tokens")
@@ -249,6 +250,19 @@ private enum Terminal {
 
     static func showCursor() {
         write("\u{1B}[?25h")
+    }
+
+    /// ANSI reset sequence.
+    static let reset = "\u{1B}[0m"
+
+    /// Wrap text in bold + bright white.
+    static func bold(_ text: String) -> String {
+        "\u{1B}[1;97m\(text)"
+    }
+
+    /// Wrap text in dim (gray).
+    static func dim(_ text: String) -> String {
+        "\u{1B}[2m\(text)\u{1B}[0m"
     }
 }
 

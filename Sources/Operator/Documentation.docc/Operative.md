@@ -28,7 +28,7 @@ The initializer throws ``OperativeError/duplicateToolName(_:)`` if any two tools
 
 - **name**: A human-readable name for this agent. Used for logging, debugging, and orchestration — for example, when multiple agents collaborate, the name identifies each agent in event streams.
 - **description**: A brief description of this agent's purpose. Useful for tooling and orchestration layers that need to understand what an agent does.
-- **llm**: An ``LLM`` instance or any ``LLMService`` conformer. The Operative uses this to make model calls. Different Operatives can use different LLM instances (and therefore different models or providers), which is useful when Orchestrator needs to mix fast and powerful models. The ``LLMService`` protocol is exposed for testability — pass a mock in tests.
+- **llm**: An ``LLM`` instance or any ``LLMService`` conformer. The Operative uses this to make model calls. Different Operatives can use different LLM instances (and therefore different models or providers), which is useful when OperativeKit needs to mix fast and powerful models. The ``LLMService`` protocol is exposed for testability — pass a mock in tests.
 - **systemPrompt**: The base system prompt sent with every request. Operator includes this verbatim — it does not inject additional instructions. The ``Operable/toolGroup`` descriptions are appended to tool schemas, not to the system prompt.
 - **tools**: An array of ``Operable`` conformers. The Operative flattens their ``ToolGroup/tools`` into a single tool list and sends the corresponding schemas to the LLM.
 - **budget**: A ``Budget`` that defines the Operative's resource limits. See <doc:Budget> for details.
@@ -102,7 +102,7 @@ Steps 2 through 15 constitute a single **turn**. The Operative tracks turns and 
 
 The Operative executes approved tool calls concurrently by default. If the LLM requests three tool calls in a single response, all three run in parallel (subject to Swift's cooperative threading). Tool implementations should be safe for concurrent execution.
 
-If a tool has ordering requirements relative to other tools, that should be expressed at the Orchestrator level (by separating the tools into different Operatives) or by designing the tool to be idempotent.
+If a tool has ordering requirements relative to other tools, that should be expressed at the OperativeKit level (by separating the tools into different Operatives) or by designing the tool to be idempotent.
 
 ## Multi-Turn Conversations
 
@@ -120,7 +120,7 @@ let result2 = try await operative.run("What's my name?", continuing: result1.con
 
 Each call to ``run(_:continuing:)`` gets a fresh budget. The conversation history (including all tool calls and results) is preserved, so the agent has full context from prior turns.
 
-For more complex orchestration — multiple agents, planning, or persistent memory — use the Orchestrator layer.
+For more complex orchestration — multiple agents, planning, or persistent memory — use the [OperativeKit](https://github.com/bensyverson/OperativeKit) layer.
 
 ## Topics
 

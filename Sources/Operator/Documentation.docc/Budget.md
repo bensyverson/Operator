@@ -4,7 +4,7 @@ Controlling how long and how far an Operative can run.
 
 ## Overview
 
-Every ``Operative`` runs within a ``Budget``. There is no "run forever" mode — budgets are a fundamental safety property that also enables Orchestrator to reason about resource allocation across multiple agents.
+Every ``Operative`` runs within a ``Budget``. There is no "run forever" mode — budgets are a fundamental safety property that also enables [OperativeKit](https://github.com/bensyverson/OperativeKit) to reason about resource allocation across multiple agents.
 
 A Budget defines four independent limits. The Operative checks all four at the start of each turn and stops as soon as any limit is reached.
 
@@ -103,15 +103,15 @@ The Operative tracks budget consumption throughout a run and reports it via Oper
 - ``TurnResult`` (in ``.turnCompleted``): Includes ``usage`` for the turn and ``cumulativeUsage`` for the run so far.
 - ``OperativeResult`` (in ``.completed``): Includes the final aggregate ``usage`` across all turns.
 
-This information is designed for Orchestrator consumption. When Orchestrator observes that a child agent's budget is running low, it can decide to:
+This information is designed for OperativeKit consumption. When OperativeKit observes that a child agent's budget is running low, it can decide to:
 
 - Compress context and spawn a continuation agent
 - Abort the sub-task and try a different approach
 - Allocate additional budget
 
-## Budget and Orchestrator
+## Budget and OperativeKit
 
-Orchestrator creates Operatives with specific budgets to control resource allocation:
+OperativeKit creates Operatives with specific budgets to control resource allocation:
 
 ```swift
 // A root agent with a generous budget
@@ -131,7 +131,7 @@ let subAgent = try Operative(
 )
 ```
 
-By varying budgets and LLM instances, Orchestrator can balance cost, speed, and capability across a multi-agent system.
+By varying budgets and LLM instances, OperativeKit can balance cost, speed, and capability across a multi-agent system.
 
 ## Topics
 

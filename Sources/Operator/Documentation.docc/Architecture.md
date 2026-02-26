@@ -26,11 +26,11 @@ The agent layer. Operator runs an LLM in a loop with access to tools. Its core r
 - **Budget enforcement**: Limiting the agent's resource usage by turns, tokens, or wall-clock time.
 - **Event streaming**: Emitting a real-time ``AsyncSequence`` of ``Operation`` events that describe everything the agent does.
 
-Operator is deliberately unopinionated. It provides the mechanism for running an agent, but leaves policy decisions — prompt engineering, tool approval UX, context management strategies — to the consumer or to Orchestrator.
+Operator is deliberately unopinionated. It provides the mechanism for running an agent, but leaves policy decisions — prompt engineering, tool approval UX, context management strategies — to the consumer or to OperativeKit.
 
-### Orchestrator (Future)
+### [OperativeKit](https://github.com/bensyverson/OperativeKit)
 
-The composition layer. Orchestrator will allow developers to build complex agentic systems by composing multiple Operatives. Planned capabilities include:
+The composition layer. OperativeKit allows developers to build complex agentic systems by composing multiple Operatives. Capabilities include:
 
 - **Sub-agents**: Spawning child Operatives with their own tools and budgets for focused sub-tasks.
 - **Parallel execution**: Running multiple agents concurrently and merging their results.
@@ -39,7 +39,7 @@ The composition layer. Orchestrator will allow developers to build complex agent
 - **Context management**: Strategies for compressing, summarizing, or clearing context when budgets run low.
 - **Planning**: Structured reasoning modes where the agent proposes a plan before executing.
 
-Each sub-agent in Orchestrator is an ``Operative`` instance. Orchestrator composes Operatives; it does not replace them.
+Each sub-agent in OperativeKit is an ``Operative`` instance. OperativeKit composes Operatives; it does not replace them.
 
 ## Why Three Layers?
 
@@ -47,7 +47,7 @@ This separation exists because real applications have different needs:
 
 - **Non-agentic apps** depend on LLM alone. They make direct calls to language models for classification, extraction, summarization, or conversation — no tool loop needed.
 - **Simple agentic apps** depend on Operator. They need a tool-using agent but don't require multi-agent coordination. A coding assistant, a data analysis bot, or a customer support agent might fall here.
-- **Complex agentic apps** depend on Orchestrator. They coordinate multiple agents with different roles, manage shared memory, and implement sophisticated control flow.
+- **Complex agentic apps** depend on OperativeKit. They coordinate multiple agents with different roles, manage shared memory, and implement sophisticated control flow.
 
 Each layer adds capability without forcing complexity on simpler use cases.
 
@@ -79,7 +79,7 @@ Consumer
 Operation stream (AsyncSequence)
 ```
 
-Orchestrator, when present, sits above this loop. It creates and manages Operatives, observes their Operation streams, and makes decisions about spawning new agents, adjusting budgets, or compressing context.
+OperativeKit, when present, sits above this loop. It creates and manages Operatives, observes their Operation streams, and makes decisions about spawning new agents, adjusting budgets, or compressing context.
 
 ## Design Principles
 
@@ -87,6 +87,6 @@ Several principles guided the architecture:
 
 - **Capability providers, not data.** Types that conform to ``Operable`` represent things that *do* something (file systems, web clients, parsers), not things that *are* something (URLs, strings, records). Data flows through tool arguments and user messages.
 - **Events for observation, middleware for control.** The ``Operation`` stream is a factual log of what happened — consumers use it for display, logging, and downstream decisions. ``Middleware`` is for intercepting and transforming behavior *before* it happens.
-- **Budgets, not unbounded loops.** Every Operative runs within a ``Budget``. There is no "run forever" mode. This is a safety property that also enables Orchestrator to reason about resource allocation.
+- **Budgets, not unbounded loops.** Every Operative runs within a ``Budget``. There is no "run forever" mode. This is a safety property that also enables OperativeKit to reason about resource allocation.
 - **The LLM decides.** Operator does not impose tool selection heuristics. The language model decides which tools to call, in what order, and when to stop. Middleware can override specific decisions, but the default is to trust the model.
 - **Engine-agnostic.** The ``LLMService`` protocol abstracts over model providers. Cloud LLMs (Claude, GPT) are the primary target, but the same ``Operative`` can be powered by Apple's on-device Foundation Models via ``AppleIntelligenceService`` — see <doc:AppleIntelligence>.

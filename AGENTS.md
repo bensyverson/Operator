@@ -41,7 +41,7 @@ Before you declare a task done, or a question answered, pause and critique your 
 Don't create temporary files in the root of the directory and leave them there. If you truly need a transient file, that's fine, but delete it when you're done. But if the artifact is something valuable (such as an agent's report, or a script), please save it in the correct directory.
 
 ## Git workflow
-The user may not be an experienced user of Git. At moments when significant work has been completed and accepted by the user, offer to commit the changes for them. You may need to pull changes and resolve conflicts, which you should do for the user using git rebase whenever possible. If there is a real conflict, ask the user how they want to resolve it, explaining the situation clearly.
+At moments when significant work has been completed and accepted by the user, offer to commit the changes for them. You may need to pull changes and resolve conflicts, which you should do for the user using git rebase whenever possible. If there is a real conflict, ask the user how they want to resolve it, explaining the situation clearly.
 
 ## Development workflow
 
@@ -59,6 +59,7 @@ The user may not be an experienced user of Git. At moments when significant work
 When writing Swift, adhere to these guidelines:
 
 - Try to always make new types conform to `Friendly` (it's defined as `typealias Friendly = Codable & Hashable & Equatable & Sendable`), even if you have no current plans to serialize or compare them.
+- In general, prefer a `struct` over a `final class`, especially for data. When modeling durable objects that need to be referenced by many callers, `final class` may be better-suited. Use an `actor` when we need to control access to shared mutable state or a shared access point such as a database connection or message queue.
 - Strongly prefer modern async / await APIs
 - Ensure your work supports Swift 6's strict concurrency requirements. Resolve compiler warnings as you encounter them.
 - Try to keep your code as cross-platform as possible; if you must use macOS or iOS-specific APIs, surround them with @available checks, and provide coverage for at least macOS and iOS. Whenever possible, stay within Foundation, so your code will compile on Linux/FreeBSD as well as Apple platforms.
