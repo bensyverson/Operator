@@ -1,6 +1,6 @@
 # Operator
 
-A Swift library for building tool-using AI [agents](https://simonwillison.net/2025/Sep/18/agents/).
+A lean, un-opinionated Swift library for building tool-using AI [agents](https://simonwillison.net/2025/Sep/18/agents/).
 
 ## Architecture
 
@@ -61,7 +61,7 @@ for await operation in operative.run("What's the host and port of https://exampl
 
 ## Documentation
 
-Full documentation is available as a DocC catalog at [`Sources/Operator/Documentation.docc/`](Sources/Operator/Documentation.docc/). Key articles:
+[Browse the documentation online](https://bensyverson.com/documentation/Operator/), or check out the DocC catalog at [`Sources/Operator/Documentation.docc/`](Sources/Operator/Documentation.docc/). Key articles:
 
 - **[Architecture](Sources/Operator/Documentation.docc/Architecture.md)** — Data flow and the three-layer model
 - **[Operative](Sources/Operator/Documentation.docc/Operative.md)** — The agent loop, configuration, and lifecycle
