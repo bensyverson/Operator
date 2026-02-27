@@ -49,3 +49,6 @@ public typealias Provider = LLM.Provider
 
 /// Model quality selection (fast vs. flagship).
 public typealias ModelType = LLM.ModelType
+
+/// A model name identifier used in API requests (e.g. `"anthropic/claude-sonnet-4"`).
+public typealias ModelName = LLM.OpenAICompatibleAPI.ModelName
