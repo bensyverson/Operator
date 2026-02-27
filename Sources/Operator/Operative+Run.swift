@@ -140,6 +140,11 @@ extension Operative {
                 conversation.configuration.tools = requestContext.toolDefinitions
             }
 
+            // Apply per-turn token limit from budget
+            if let maxTokensPerTurn = budget.maxTokensPerTurn {
+                conversation.configuration.maxTokens = maxTokensPerTurn
+            }
+
             // 3. Call LLM with streaming (with timeout if budget specifies one)
             let response: LLMResponse
             do {
