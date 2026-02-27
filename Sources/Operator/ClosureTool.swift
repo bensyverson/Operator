@@ -16,8 +16,55 @@ public struct ClosureTool<Input: ToolInput>: ToolProvider {
     }
 
     public func call(arguments: ToolArguments) async throws -> ToolOutput {
-        let input = try JSONDecoder().decode(Input.self, from: arguments.rawData)
+        let input: Input
+        do {
+            input = try JSONDecoder().decode(Input.self, from: arguments.rawData)
+        } catch let error as DecodingError {
+            throw ToolError(
+                message: Self.describeDecodingError(error, schema: definition.function),
+                underlyingError: error
+            )
+        }
         return try await execute(input)
+    }
+
+    /// Builds a human-readable message from a `DecodingError`, using the tool's schema
+    /// to list expected parameters so the LLM can self-correct.
+    static func describeDecodingError(
+        _ error: DecodingError,
+        schema: FunctionDefinition
+    ) -> String {
+        let paramSummary = Self.parameterSummary(schema: schema)
+
+        switch error {
+        case let .keyNotFound(key, _):
+            return "Missing required parameter '\(key.stringValue)'. \(schema.name) expects: \(paramSummary)."
+        case let .typeMismatch(expectedType, context):
+            let paramName = context.codingPath.last?.stringValue ?? "unknown"
+            return "Wrong type for parameter '\(paramName)': expected \(expectedType). \(schema.name) expects: \(paramSummary)."
+        case let .valueNotFound(_, context):
+            let paramName = context.codingPath.last?.stringValue ?? "unknown"
+            return "Null value for parameter '\(paramName)'. \(schema.name) expects: \(paramSummary)."
+        case let .dataCorrupted(context):
+            return "Malformed arguments: \(context.debugDescription). \(schema.name) expects: \(paramSummary)."
+        @unknown default:
+            return "Invalid arguments for \(schema.name). Expected: \(paramSummary)."
+        }
+    }
+
+    /// Builds a summary like `path (string, required), content (string, required)` from the tool schema.
+    private static func parameterSummary(schema: FunctionDefinition) -> String {
+        guard let properties = schema.parameters.properties, !properties.isEmpty else {
+            return "no parameters"
+        }
+        let requiredSet = Set(schema.parameters.required ?? [])
+        let entries: [String] = properties.keys.sorted().map { key in
+            let prop = properties[key]!
+            let typeLabel = prop.type.rawValue
+            let requiredLabel = requiredSet.contains(key) ? "required" : "optional"
+            return "\(key) (\(typeLabel), \(requiredLabel))"
+        }
+        return entries.joined(separator: ", ")
     }
 }
 

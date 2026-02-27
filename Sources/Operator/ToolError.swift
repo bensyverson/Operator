@@ -1,9 +1,11 @@
+import Foundation
+
 /// An error that occurred during tool execution.
 ///
 /// Wraps the error message and the underlying error for inspection.
 /// Cannot conform to `Equatable`/`Hashable`/`Codable` because
 /// it holds `any Error`, so it conforms to `Error & Sendable` only.
-public struct ToolError: Error, Sendable {
+public struct ToolError: Error, Sendable, LocalizedError {
     /// A human-readable description of the error.
     public let message: String
 
@@ -14,5 +16,9 @@ public struct ToolError: Error, Sendable {
     public init(message: String, underlyingError: any Error) {
         self.message = message
         self.underlyingError = underlyingError
+    }
+
+    public var errorDescription: String? {
+        message
     }
 }
