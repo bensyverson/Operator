@@ -11,6 +11,9 @@ public enum OperativeError: Error, LocalizedError, Sendable {
     /// Two or more tools share the same name.
     case duplicateToolName(String)
 
+    /// The model requested a tool that is not in this agent's registry.
+    case unknownTool(String)
+
     public var errorDescription: String? {
         switch self {
         case let .stopped(reason):
@@ -19,6 +22,8 @@ public enum OperativeError: Error, LocalizedError, Sendable {
             "Operation stream ended without a terminal event"
         case let .duplicateToolName(name):
             "Duplicate tool name: '\(name)'"
+        case let .unknownTool(name):
+            "Unknown tool '\(name)' — the model requested a tool that is not in this agent's registry."
         }
     }
 }

@@ -36,5 +36,6 @@ let package = Package(
                 .product(name: "MCP", package: "swift-sdk"),
             ]
         ),
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )

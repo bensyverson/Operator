@@ -317,7 +317,7 @@ extension Operative {
                             arguments: ctx.arguments,
                             toolCallId: ctx.toolCallId
                         )
-                        let error = OperativeError.duplicateToolName(ctx.name)
+                        let error = OperativeError.unknownTool(ctx.name)
                         continuation.yield(.toolFailed(
                             request,
                             ToolError(message: "Unknown tool: \(ctx.name)", underlyingError: error)

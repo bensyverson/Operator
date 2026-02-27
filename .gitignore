@@ -9,3 +9,4 @@ DerivedData/
 .env
 Package.resolved
 project/
+Examples/TimeAgent/.swiftpm/
