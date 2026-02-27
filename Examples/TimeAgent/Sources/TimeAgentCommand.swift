@@ -13,6 +13,12 @@ struct TimeAgentCommand: AsyncParsableCommand {
     @Option(name: .long, help: "LLM provider: openai, anthropic, lmstudio, or apple. Auto-detects from API key env vars if omitted.")
     var provider: String?
 
+    @Option(name: .long, help: "Base URL for an OpenAI-compatible API (e.g. https://openrouter.ai/api).")
+    var host: String?
+
+    @Option(name: .long, help: "Model identifier to send in API requests (e.g. anthropic/claude-3.5-sonnet).")
+    var model: String?
+
     @Option(name: .long, help: "API key for the provider. Falls back to OPENAI_API_KEY or ANTHROPIC_API_KEY.")
     var apiKey: String?
 
@@ -28,7 +34,8 @@ struct TimeAgentCommand: AsyncParsableCommand {
     func run() async throws {
         let operative = try buildOperative()
 
-        print("TimeAgent ready. Type your message, or \"quit\" to exit.\n")
+        print("TimeAgent ready. Type your message, or \"quit\" to exit.")
+        print("Provider: \(resolvedProviderLabel)  Model: \(resolvedModelLabel)\n")
 
         var lastConversation: LLM.Conversation?
 
@@ -182,7 +189,8 @@ struct TimeAgentCommand: AsyncParsableCommand {
         default: .fast
         }
 
-        let config = LLM.ConversationConfiguration(modelType: resolvedModelType, maxTokens: 4096)
+        let modelOverride: LLM.OpenAICompatibleAPI.ModelName? = model.map { LLM.OpenAICompatibleAPI.ModelName(rawValue: $0) }
+        let config = LLM.ConversationConfiguration(modelType: resolvedModelType, model: modelOverride, maxTokens: 4096)
 
         return try Operative(
             name: "TimeAgent",
@@ -195,8 +203,45 @@ struct TimeAgentCommand: AsyncParsableCommand {
         )
     }
 
+    private var resolvedProviderLabel: String {
+        if let host {
+            if host.contains("openrouter.ai") { return "OpenRouter (\(host))" }
+            return host
+        }
+        switch provider?.lowercased() {
+        case "openai": return "OpenAI"
+        case "anthropic": return "Anthropic"
+        case "lmstudio": return "LM Studio"
+        case "apple": return "Apple Intelligence"
+        default:
+            let env = ProcessInfo.processInfo.environment
+            if env["ANTHROPIC_API_KEY"] != nil { return "Anthropic" }
+            if env["OPENAI_API_KEY"] != nil { return "OpenAI" }
+            return "LM Studio"
+        }
+    }
+
+    private var resolvedModelLabel: String {
+        if let model { return model }
+        return modelType
+    }
+
     private func resolveProvider() throws -> LLM.Provider {
         let env = ProcessInfo.processInfo.environment
+
+        // If --host is provided, use it as an OpenAI-compatible endpoint.
+        if let host {
+            guard let url = URL(string: host) else {
+                throw ValidationError("Invalid URL for --host: '\(host)'")
+            }
+            // Auto-detect API key: explicit --api-key, then OPENROUTER_API_KEY for
+            // OpenRouter hosts, then OPENAI_API_KEY as a generic fallback.
+            let isOpenRouter = host.contains("openrouter.ai")
+            let key = apiKey
+                ?? (isOpenRouter ? env["OPENROUTER_API_KEY"] : nil)
+                ?? env["OPENAI_API_KEY"]
+            return .other(url, apiKey: key)
+        }
 
         // If the user specified a provider explicitly, use it.
         if let provider {
