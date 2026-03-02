@@ -37,7 +37,7 @@ When ``CompactionMiddleware/pressureOnly`` is `true` (recommended), the middlewa
 let operative = try Operative(
     name: "LongRunner",
     description: "An agent with long sessions",
-    llm: myLLM,
+    provider: .anthropic(apiKey: key),
     systemPrompt: "...",
     tools: [myTools],
     budget: Budget(

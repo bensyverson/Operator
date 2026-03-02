@@ -207,7 +207,9 @@ Middlewares execute in the order they are provided to the Operative:
 
 ```swift
 let operative = try Operative(
-    llm: myLLM,
+    name: "Agent",
+    description: "An agent with middleware",
+    provider: .anthropic(apiKey: key),
     systemPrompt: "...",
     tools: [...],
     budget: Budget(maxTurns: 10),

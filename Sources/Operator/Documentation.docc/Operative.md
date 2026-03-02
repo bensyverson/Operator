@@ -14,7 +14,7 @@ An Operative is initialized with everything it needs to run:
 let operative = try Operative(
     name: "FileAssistant",
     description: "A helpful assistant with file system access",
-    llm: myLLM,
+    provider: .anthropic(apiKey: key),
     systemPrompt: "You are a helpful assistant with access to the user's file system.",
     tools: [fileSystem, webSearch, calculator],
     budget: Budget(maxTurns: 20, maxTokens: 100_000, timeout: .seconds(300)),
@@ -28,7 +28,7 @@ The initializer throws ``OperativeError/duplicateToolName(_:)`` if any two tools
 
 - **name**: A human-readable name for this agent. Used for logging, debugging, and orchestration — for example, when multiple agents collaborate, the name identifies each agent in event streams.
 - **description**: A brief description of this agent's purpose. Useful for tooling and orchestration layers that need to understand what an agent does.
-- **llm**: An ``LLM`` instance or any ``LLMService`` conformer. The Operative uses this to make model calls. Different Operatives can use different LLM instances (and therefore different models or providers), which is useful when OperativeKit needs to mix fast and powerful models. The ``LLMService`` protocol is exposed for testability — pass a mock in tests.
+- **provider**: A ``Provider`` that tells Operator which LLM to use (e.g., `.anthropic(apiKey:)`, `.openAI(apiKey:)`, `.lmStudio`). Different Operatives can use different providers, which is useful when you need to mix fast and powerful models. For testing, use the ``init(name:description:llm:systemPrompt:tools:budget:middleware:configuration:)`` overload with any ``LLMService`` conformer.
 - **systemPrompt**: The base system prompt sent with every request. Operator includes this verbatim — it does not inject additional instructions. The ``Operable/toolGroup`` descriptions are appended to tool schemas, not to the system prompt.
 - **tools**: An array of ``Operable`` conformers. The Operative flattens their ``ToolGroup/tools`` into a single tool list and sends the corresponding schemas to the LLM.
 - **budget**: A ``Budget`` that defines the Operative's resource limits. See <doc:Budget> for details.

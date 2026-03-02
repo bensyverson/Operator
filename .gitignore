@@ -10,3 +10,5 @@ DerivedData/
 Package.resolved
 project/
 Examples/TimeAgent/.swiftpm/
+Examples/Chat/.swiftpm/
+

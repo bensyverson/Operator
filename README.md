@@ -106,13 +106,15 @@ Then add it to your target:
 
 Requires Swift 6.2+ and macOS 15+ / iOS 18+.
 
-## Example
+## Examples
 
-See [`Examples/TimeAgent/`](Examples/TimeAgent/) for an interactive CLI agent that demonstrates tool use, multi-turn conversation, and provider configuration. Quick start:
+### Chat
+
+[`Examples/Chat/`](Examples/Chat/) is a rich terminal chat UI built with [TextUI](https://github.com/bensyverson/TextUI). It demonstrates streaming, tool calling, multi-turn conversation, and debug mode in a full-screen TUI app.
 
 ```bash
-cd Examples/TimeAgent
-swift run TimeAgent
+cd Examples/Chat
+swift run Chat --provider lmstudio
 ```
 
 ---

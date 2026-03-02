@@ -52,3 +52,15 @@ public typealias ModelType = LLM.ModelType
 
 /// A model name identifier used in API requests (e.g. `"anthropic/claude-sonnet-4"`).
 public typealias ModelName = LLM.OpenAICompatibleAPI.ModelName
+
+/// The inference mode for a conversation (direct vs. reasoning).
+public typealias InferenceType = LLM.InferenceType
+
+/// Tool selection strategy sent in the API request.
+public typealias ToolChoice = LLM.OpenAICompatibleAPI.ToolChoice
+
+/// Reasoning effort level for models that support it.
+public typealias ReasoningEffort = LLM.OpenAICompatibleAPI.ChatCompletion.ReasoningEffort
+
+/// Cache time-to-live for providers that support prompt caching.
+public typealias CacheTTL = LLM.OpenAICompatibleAPI.CacheControl.TTL

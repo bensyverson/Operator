@@ -140,41 +140,4 @@ public struct Operative: Sendable {
             configuration: configuration
         )
     }
-
-    /// Creates an Operative with an ``LLM`` actor directly.
-    ///
-    /// Prefer the ``init(name:description:provider:systemPrompt:tools:budget:middleware:configuration:)``
-    /// initializer to avoid importing the LLM library directly.
-    ///
-    /// - Parameters:
-    ///   - name: A human-readable name for this agent.
-    ///   - description: A brief description of this agent's purpose.
-    ///   - llm: The LLM actor to use for model calls.
-    ///   - systemPrompt: The base system prompt sent with every request.
-    ///   - tools: Operable conformers whose tools the agent can call.
-    ///   - budget: Resource limits for the run.
-    ///   - middleware: Ordered middleware pipeline.
-    ///   - configuration: Conversation configuration.
-    /// - Throws: ``OperativeError/duplicateToolName(_:)`` if tool names collide.
-    public init(
-        name: String,
-        description: String,
-        llm: LLM,
-        systemPrompt: String,
-        tools: [any Operable],
-        budget: Budget,
-        middleware: [any Middleware] = [],
-        configuration: ConversationConfiguration = ConversationConfiguration()
-    ) throws {
-        try self.init(
-            name: name,
-            description: description,
-            llm: LLMServiceAdapter(llm),
-            systemPrompt: systemPrompt,
-            tools: tools,
-            budget: budget,
-            middleware: middleware,
-            configuration: configuration
-        )
-    }
 }

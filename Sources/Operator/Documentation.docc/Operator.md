@@ -41,7 +41,7 @@ struct URLParser: Operable {
 let operative = try Operative(
     name: "URLHelper",
     description: "Helps users work with URLs",
-    llm: myLLM,
+    provider: .anthropic(apiKey: key),
     systemPrompt: "You help users work with URLs.",
     tools: [URLParser()],
     budget: Budget(maxTurns: 10)

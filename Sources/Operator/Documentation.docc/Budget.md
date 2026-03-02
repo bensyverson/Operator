@@ -116,7 +116,9 @@ OperativeKit creates Operatives with specific budgets to control resource alloca
 ```swift
 // A root agent with a generous budget
 let rootAgent = try Operative(
-    llm: flagshipLLM,
+    name: "ProjectManager",
+    description: "Coordinates sub-tasks",
+    provider: .anthropic(apiKey: key),
     systemPrompt: "You are a project manager coordinating sub-tasks.",
     tools: [...],
     budget: Budget(maxTurns: 50, maxTokens: 500_000, timeout: .minutes(10))
@@ -124,7 +126,9 @@ let rootAgent = try Operative(
 
 // A focused sub-agent with a tight budget
 let subAgent = try Operative(
-    llm: fastLLM,
+    name: "WebSearcher",
+    description: "Searches the web for information",
+    provider: .openAI(apiKey: key),
     systemPrompt: "You search the web for specific information.",
     tools: [webSearch],
     budget: Budget(maxTurns: 5, maxTokens: 20_000, timeout: .seconds(30))

@@ -22,4 +22,28 @@ public extension ConversationConfiguration {
     init(model: ModelName) {
         self.init(modelType: .fast, model: model)
     }
+
+    /// Creates a conversation configuration with common parameters.
+    ///
+    /// - Parameters:
+    ///   - modelType: Quality tier selection (`.fast` or `.flagship`).
+    ///   - inference: Inference mode (`.direct` or `.reasoning`).
+    ///   - model: An explicit model name override, or `nil` to use the provider default.
+    ///   - maxTokens: Maximum completion tokens per turn, or `nil` for the provider default.
+    init(
+        modelType: ModelType = .fast,
+        inference: InferenceType = .direct,
+        model: ModelName? = nil,
+        maxTokens: Int? = nil
+    ) {
+        // Pass `temperature` explicitly to disambiguate from this initializer
+        // and resolve to the canonical LLM.ConversationConfiguration.init.
+        self.init(
+            modelType: modelType,
+            inference: inference,
+            model: model,
+            temperature: nil,
+            maxTokens: maxTokens
+        )
+    }
 }

@@ -28,7 +28,7 @@ Once connected, call ``MCPConnection/operables()`` to discover the server's tool
 let operative = try Operative(
     name: "Agent",
     description: "An agent with MCP tools",
-    llm: myLLM,
+    provider: .anthropic(apiKey: key),
     systemPrompt: "You help users manage files.",
     tools: [localTools] + (try await connection.operables()),
     budget: Budget(maxTurns: 10)
@@ -147,7 +147,7 @@ import Operator
 let operative = try Operative(
     name: "Assistant",
     description: "A helpful assistant",
-    llm: myLLM,
+    provider: .anthropic(apiKey: key),
     systemPrompt: "You are a helpful assistant.",
     tools: [myTools],
     budget: Budget(maxTurns: 10)

@@ -173,7 +173,9 @@ Pass an array of ``Operable`` instances when creating an Operative:
 
 ```swift
 let operative = try Operative(
-    llm: myLLM,
+    name: "Assistant",
+    description: "A helpful assistant",
+    provider: .anthropic(apiKey: key),
     systemPrompt: "You are a helpful assistant.",
     tools: [
         FileSystem(rootPath: "/Users/ben/project"),

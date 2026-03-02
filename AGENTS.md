@@ -41,7 +41,7 @@ Before you declare a task done, or a question answered, pause and critique your 
 Don't create temporary files in the root of the directory and leave them there. If you truly need a transient file, that's fine, but delete it when you're done. But if the artifact is something valuable (such as an agent's report, or a script), please save it in the correct directory.
 
 ## Git workflow
-At moments when significant work has been completed and accepted by the user, offer to commit the changes for them. You may need to pull changes and resolve conflicts, which you should do for the user using git rebase whenever possible. If there is a real conflict, ask the user how they want to resolve it, explaining the situation clearly.
+At moments when significant work has been completed and accepted by the user, offer to commit the changes for them. You may need to pull changes and resolve conflicts, which you should do for the user using git rebase whenever possible. If there is a real conflict, ask the user how they want to resolve it, explaining the situation clearly. Always commit all uncommitted files together, as your changes may depend on prior changes, and we don't want to commit the code in a half-working state.
 
 ## Development workflow
 
@@ -58,6 +58,7 @@ At moments when significant work has been completed and accepted by the user, of
 
 When writing Swift, adhere to these guidelines:
 
+- Organize Source and Test files in folders rather than placing all source in `Sources`. However, try not to nest folders more than one level deep.
 - Try to always make new types conform to `Friendly` (it's defined as `typealias Friendly = Codable & Hashable & Equatable & Sendable`), even if you have no current plans to serialize or compare them.
 - In general, prefer a `struct` over a `final class`, especially for data. When modeling durable objects that need to be referenced by many callers, `final class` may be better-suited. Use an `actor` when we need to control access to shared mutable state or a shared access point such as a database connection or message queue.
 - Strongly prefer modern async / await APIs
@@ -69,4 +70,5 @@ When writing Swift, adhere to these guidelines:
 - When creating a new combined library/executable, if the entire package is FooBar, name the library target & files FooBarCore, and the CLI target & files FooBarCommand.
 - Nest subtype declarations within the type declaration when they're small (enums and small structs), rather than polluting the global namespace with new types.
 - When creating a new group of tests (new struct), place them in a new Swift file in the correct folder, rather than adding them to an existing file.
-- When extending a type, place the extension in its own folder, named `BaseType+ExtensionName.swift`—for example, if you need a custom Codable implementation for `Timeline`, it would be `Timeline+Codable.swift`. This applies to extending third-party types as well.
+- In general, stick to "one type per file;" don't define many types in a single source file. If you find yourself with a very long source file (over 200-300 lines), it's time to think about how to pull related methods into a separate file or extension.
+- When extending a type, place the extension in its own file, named `BaseType+ExtensionName.swift`—for example, if you need a custom Codable implementation for `Timeline`, it would be `Timeline+Codable.swift`. This applies to extending third-party types as well.
