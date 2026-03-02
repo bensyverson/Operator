@@ -53,11 +53,65 @@ let operative = try Operative(
 )
 ```
 
+### Tool Calling with `@Generable`
+
+The on-device model manages its own tool loop internally — it calls tools
+during `respond(to:)` and never exposes structured tool calls to the caller.
+Operator bridges this automatically: any tool whose ``ToolInput`` type also
+conforms to `@Generable` (`ConvertibleFromGeneratedContent`) is wrapped as
+an Apple `FoundationModels.Tool` and handed to the session.
+
+```swift
+@Generable
+struct WeatherInput: ToolInput {
+    @Guide(description: "City name")
+    var city: String
+
+    static var paramDescriptions: [String: String] {
+        ["city": "City name"]
+    }
+}
+
+// This SAME tool works with both cloud LLMs and Apple Intelligence:
+let tool = try Tool(
+    name: "getWeather",
+    description: "Get current weather for a city",
+    input: WeatherInput.self
+) { input in
+    ToolOutput("Sunny in \(input.city)")
+}
+```
+
+Both `@Guide` descriptions and ``ToolInput/paramDescriptions`` are needed:
+`@Guide` drives Apple's guided generation; `paramDescriptions` drives JSON
+Schema extraction for cloud LLMs. The descriptions should match but are not
+validated against each other.
+
+When the on-device model calls a tool, Operator emits the usual
+`.toolsRequested`, `.toolCompleted`, and `.toolFailed` events, so your
+event-handling code works identically regardless of the backend.
+
+Tools whose input type does **not** conform to `@Generable` are silently
+excluded from the on-device session. If all tools are excluded, the session
+still runs — it just won't have any tools available.
+
+### Middleware Differences
+
+When running on Apple Intelligence, middleware hooks behave differently
+because Apple drives the tool loop:
+
+| Hook | Supported | Notes |
+|------|-----------|-------|
+| `afterResponse` | Yes | Called after `respond(to:)` returns |
+| `onToolError` | No | Errors are caught by the proxy and returned to the model |
+| `beforeRequest` | No | No standard request object exists |
+| `beforeToolCalls` | No | Apple calls tools autonomously |
+
 ### Limitations
 
-- **No tool calling**: The on-device model manages its own tool loop internally and does not emit tool calls through Operator's ``ToolProvider`` system. Tools are registered but may not be reliably invoked.
-- **No token usage reporting**: ``LLMResponse/usage`` is always ``TokenUsage/zero``.
-- **No extended thinking**: ``LLMResponse/thinking`` is always `nil`.
+- **No token usage reporting**: ``TokenUsage`` is always ``TokenUsage/zero``.
+- **No extended thinking**: Thinking content is always `nil`.
+- **Single turn**: From Operator's perspective, each `run()` is one turn. Apple may internally loop over multiple tool calls, but the ``Budget/maxTurns`` limit counts the entire `respond(to:)` as a single turn.
 - **Hardware requirement**: Requires Apple Intelligence–enabled hardware at runtime. Use `@available` checks and runtime guards as appropriate.
 
 ## Bridging Apple Tools

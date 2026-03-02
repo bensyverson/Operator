@@ -67,6 +67,20 @@ extension Operative {
         conversation initialConversation: Conversation,
         continuation: OperationStream.Continuation
     ) async {
+        // If the LLM service handles tool execution internally (e.g., Apple
+        // FoundationModels), delegate the entire run to it. The service emits
+        // Operation events directly to the continuation.
+        if let toolHandler = llm as? ToolHandlingLLMService {
+            await toolHandler.execute(
+                conversation: initialConversation,
+                tools: toolRegistry,
+                budget: budget,
+                middleware: middleware,
+                continuation: continuation
+            )
+            return
+        }
+
         var conversation = initialConversation
 
         var turnNumber = 0
@@ -76,6 +90,17 @@ extension Operative {
 
         while true {
             turnNumber += 1
+
+            // Compute and emit pressure signals before budget checks so the
+            // agent sees warnings even when usage jumps past both threshold
+            // and hard limit in a single turn.
+            let pressureSignals = computePressure(
+                lastPromptTokens: lastPromptTokens,
+                cumulativeUsage: cumulativeUsage
+            )
+            for signal in pressureSignals {
+                continuation.yield(.pressure(signal))
+            }
 
             // 1. Check budget — turn limit
             if let maxTurns = budget.maxTurns, turnNumber > maxTurns {
@@ -93,17 +118,6 @@ extension Operative {
             if let timeout = budget.timeout, ContinuousClock.now - startTime >= timeout {
                 continuation.yield(.stopped(.timeout))
                 return
-            }
-
-            // Compute pressure signals
-            let pressureSignals = computePressure(
-                lastPromptTokens: lastPromptTokens,
-                cumulativeUsage: cumulativeUsage
-            )
-
-            // Emit pressure signals
-            for signal in pressureSignals {
-                continuation.yield(.pressure(signal))
             }
 
             // Emit turn started

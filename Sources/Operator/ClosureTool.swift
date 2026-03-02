@@ -5,15 +5,7 @@ import LLM
 /// and ``Tool(name:description:execute:)`` factory functions.
 public struct ClosureTool<Input: ToolInput>: ToolProvider {
     public let definition: ToolDefinition
-    private let execute: @Sendable (Input) async throws -> ToolOutput
-
-    init(
-        definition: ToolDefinition,
-        execute: @escaping @Sendable (Input) async throws -> ToolOutput
-    ) {
-        self.definition = definition
-        self.execute = execute
-    }
+    let execute: @Sendable (Input) async throws -> ToolOutput
 
     public func call(arguments: ToolArguments) async throws -> ToolOutput {
         let input: Input

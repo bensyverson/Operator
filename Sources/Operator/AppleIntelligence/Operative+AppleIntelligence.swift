@@ -19,11 +19,13 @@
         /// )
         /// ```
         ///
-        /// > Important: The on-device model does not support tool calling
-        /// > through Operator's agent loop. Tools are still registered and
-        /// > their schemas are sent to the model, but the model may not
-        /// > reliably invoke them. This initializer is best suited for
-        /// > simple text-in, text-out tasks like summarization.
+        /// > Tip: Tools whose ``ToolInput`` type also conforms to
+        /// > `@Generable` (`ConvertibleFromGeneratedContent`) are automatically
+        /// > bridged to Apple's on-device tool loop. The model calls them
+        /// > internally during `respond(to:)` and Operator emits the usual
+        /// > `.toolsRequested` / `.toolCompleted` / `.toolFailed` events.
+        /// > Tools without `@Generable` inputs are silently excluded from
+        /// > the on-device session.
         ///
         /// - Parameters:
         ///   - name: A human-readable name for this agent.
