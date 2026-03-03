@@ -14,44 +14,40 @@ struct ProviderPickerView: View {
 
     var body: some View {
         VStack {
-            Spacer()
-            VStack {
-                Text("Chat").bold()
-                Text("Select a provider to begin.").dim()
-                Text(" ")
-                Picker(
-                    "Provider",
-                    selection: state.selectedProviderIndex,
-                    options: ProviderOption.allCases.map(\.displayName)
-                ) { [state] newIndex in
-                    state.selectedProviderIndex = newIndex
-                    let provider = ProviderOption.allCases[newIndex]
-                    if provider.requiresAPIKey, !provider.hasAPIKey() {
-                        state.providerWarning = "Set \(provider.envKeyName!) to use \(provider.displayName)."
-                    } else {
-                        state.providerWarning = nil
-                    }
+            Text("Chat").bold()
+            Text("Select a provider to begin.").dim()
+            Text(" ")
+            Picker(
+                "Provider",
+                selection: state.selectedProviderIndex,
+                options: ProviderOption.allCases.map(\.displayName)
+            ) { [state] newIndex in
+                state.selectedProviderIndex = newIndex
+                let provider = ProviderOption.allCases[newIndex]
+                if provider.requiresAPIKey, !provider.hasAPIKey() {
+                    state.providerWarning = "Set \(provider.envKeyName!) to use \(provider.displayName)."
+                } else {
+                    state.providerWarning = nil
                 }
-                if let warning = state.providerWarning {
-                    Text(warning).foregroundColor(.yellow)
-                }
-                Text(" ")
-                Button("Start") { [state] in
-                    do {
-                        try state.buildOperative()
-                        state.providerConfirmed = true
-                    } catch {
-                        state.providerWarning = "Error: \(error)"
-                    }
-                }
-                .disabled(!canStart)
             }
-            .padding(horizontal: 2, vertical: 1)
-            .border(.rounded)
-            .frame(maxWidth: 50)
-            Spacer()
+            if let warning = state.providerWarning {
+                Text(warning).foregroundColor(.yellow)
+            }
+            Text(" ")
+            Button("Start") { [state] in
+                do {
+                    try state.buildOperative()
+                    state.providerConfirmed = true
+                    state.showProviderPicker = false
+                } catch {
+                    state.providerWarning = "Error: \(error)"
+                }
+            }
+            .disabled(!canStart)
         }
-        .frame(maxWidth: .max, maxHeight: .max)
+        .padding(horizontal: 2, vertical: 1)
+        .border(.rounded)
+        .frame(maxWidth: 50)
     }
 
     private var canStart: Bool {

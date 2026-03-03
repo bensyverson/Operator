@@ -15,6 +15,7 @@ struct ChatApp: App {
                 do {
                     try chatState.buildOperative()
                     chatState.providerConfirmed = true
+                    chatState.showProviderPicker = false
                 } catch {
                     chatState.providerWarning = "Error: \(error)"
                 }
@@ -42,6 +43,9 @@ struct ChatApp: App {
                     chatState.debugMode.toggle()
                 }
                 .keyboardShortcut("d", modifiers: .control)
+                Button("Switch Provider") {
+                    chatState.showProviderPicker = true
+                }
             },
         ]
     }

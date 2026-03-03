@@ -38,6 +38,10 @@ final class ChatState: @unchecked Sendable {
         didSet { MainActor.assumeIsolated { StateSignal.send() } }
     }
 
+    var showProviderPicker: Bool = true {
+        didSet { MainActor.assumeIsolated { StateSignal.send() } }
+    }
+
     var currentTurn: Int = 0 {
         didSet { MainActor.assumeIsolated { StateSignal.send() } }
     }

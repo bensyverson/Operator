@@ -1,24 +1,29 @@
 import TextUI
 
-/// The top-level chat view that switches between the provider picker
-/// and the conversation interface.
+/// The top-level chat view with the conversation interface as the base
+/// and the provider picker shown as a modal overlay.
 struct ChatView: View {
     @EnvironmentObject var state: ChatState
 
     var body: some View {
-        ZStack {
-            if state.providerConfirmed {
-                VStack {
-                    if state.debugMode {
-                        DebugBannerView()
-                    }
-                    MessageListView()
-                    Divider.horizontal
-                    InputBarView()
-                }
-            } else {
-                ProviderPickerView()
+        VStack {
+            if state.debugMode {
+                DebugBannerView()
             }
+            MessageListView()
+            Divider.horizontal
+            InputBarView()
         }
+        .modal(
+            isPresented: state.showProviderPicker,
+            onDismiss: dismissAction
+        ) {
+            ProviderPickerView()
+        }
+    }
+
+    private var dismissAction: (@Sendable () -> Void)? {
+        guard state.providerConfirmed else { return nil }
+        return { [state] in state.showProviderPicker = false }
     }
 }
