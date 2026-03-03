@@ -1,6 +1,6 @@
 # Operator
 
-A lean, un-opinionated Swift library for building tool-using AI [agents](https://simonwillison.net/2025/Sep/18/agents/).
+A lean, un-opinionated Swift library for building tool-using AI [agents](https://simonwillison.net/2025/Sep/18/agents/). Using Operator, you can easily swap providers mid-conversation, even from a hosted API such as Anthropic to an on-device model provided by [Apple Foundation Models](https://developer.apple.com/documentation/foundationmodels).
 
 ## Architecture
 
@@ -10,7 +10,7 @@ Operator sits in the middle of a three-layer stack:
 |-------|------|
 | **[OperativeKit](https://github.com/bensyverson/OperativeKit)** | Multi-agent composition based on fixed or dynamic graphs |
 | **Operator** (this repo) | Agent loop — tools, middleware, budgets, streaming events |
-| **[LLM](https://github.com/bensyverson/Operator)** | Raw model communication — stateless, provider-agnostic |
+| **[LLM](https://github.com/bensyverson/LLM)** | Raw model communication — stateless, provider-agnostic |
 
 Many chatbot applications would only need Operator. Reach for [OperativeKit](https://github.com/bensyverson/OperativeKit) when you need to coordinate multiple agents or design more complex workflows.
 
@@ -114,7 +114,7 @@ Requires Swift 6.2+ and macOS 15+ / iOS 18+.
 
 ```bash
 cd Examples/Chat
-swift run Chat --provider lmstudio
+swift run
 ```
 
 ---
