@@ -17,7 +17,6 @@ extension ChatState {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
 
-        messages.append(ChatMessage(id: UUID(), role: .user, text: trimmed))
         inputText = ""
         isStreaming = true
         currentTurn = 0
@@ -36,13 +35,17 @@ extension ChatState {
         // (unknown), we optimistically try — all current Anthropic/OpenAI models
         // support vision, and sending images to a text-only model is harmless.
         let skipVision = operative.configuration.model?.supportsVision == false
-        let multimodalParts = skipVision ? nil : trimmed.contentParts()
+        let parsedContent = skipVision ? nil : trimmed.contentParts()
 
-        let stream: OperationStream = if let parts = multimodalParts {
+        // Show a display-friendly version in the chat (with media labels)
+        let displayText = parsedContent?.displayText ?? trimmed
+        messages.append(ChatMessage(id: UUID(), role: .user, text: displayText))
+
+        let stream: OperationStream = if let parsed = parsedContent {
             if let convo = lastConversation {
-                operative.run(parts, continuing: convo)
+                operative.run(parsed.parts, continuing: convo)
             } else {
-                operative.run(parts)
+                operative.run(parsed.parts)
             }
         } else if let convo = lastConversation {
             operative.run(trimmed, continuing: convo)

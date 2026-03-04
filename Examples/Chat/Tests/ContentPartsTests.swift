@@ -26,30 +26,31 @@ struct ContentPartsTests {
         defer { try? FileManager.default.removeItem(at: imageURL) }
 
         let input = "Look at this \(imageURL.path) please"
-        let parts = input.contentParts()
+        let result = input.contentParts()
 
-        #expect(parts != nil)
-        #expect(parts?.count == 3)
+        #expect(result != nil)
+        let parts = try #require(result).parts
+        #expect(parts.count == 3)
 
         // First part: text before the path
-        if case let .text(t) = parts?[0] {
+        if case let .text(t) = parts[0] {
             #expect(t == "Look at this")
         } else {
-            Issue.record("Expected .text, got \(String(describing: parts?[0]))")
+            Issue.record("Expected .text, got \(parts[0])")
         }
 
         // Second part: image
-        if case .image = parts?[1] {
+        if case .image = parts[1] {
             // OK
         } else {
-            Issue.record("Expected .image, got \(String(describing: parts?[1]))")
+            Issue.record("Expected .image, got \(parts[1])")
         }
 
         // Third part: text after the path
-        if case let .text(t) = parts?[2] {
+        if case let .text(t) = parts[2] {
             #expect(t == "please")
         } else {
-            Issue.record("Expected .text, got \(String(describing: parts?[2]))")
+            Issue.record("Expected .text, got \(parts[2])")
         }
     }
 
@@ -67,15 +68,15 @@ struct ContentPartsTests {
 
         let relativePath = "~/.chat_test_tmp/tilde_test.jpg"
         let input = "Check \(relativePath) out"
-        let parts = input.contentParts()
+        let result = input.contentParts()
 
-        #expect(parts != nil)
+        let parts = try #require(result).parts
         // Should have text, image, text
-        #expect(parts?.count == 3)
-        if case .image = parts?[1] {
+        #expect(parts.count == 3)
+        if case .image = parts[1] {
             // OK — tilde was expanded and file was loaded
         } else {
-            Issue.record("Expected .image from tilde path, got \(String(describing: parts?[1]))")
+            Issue.record("Expected .image from tilde path, got \(parts[1])")
         }
     }
 
@@ -94,13 +95,12 @@ struct ContentPartsTests {
         }
 
         let input = "Compare \(img1.path) with \(img2.path) please"
-        let parts = input.contentParts()
+        let result = try #require(input.contentParts())
 
-        #expect(parts != nil)
         // text, image, text, image, text
-        #expect(parts?.count == 5)
+        #expect(result.parts.count == 5)
 
-        let imageCount = parts?.count(where: {
+        let imageCount = result.parts.count(where: {
             if case .image = $0 { return true }
             return false
         })
@@ -117,14 +117,13 @@ struct ContentPartsTests {
         defer { try? FileManager.default.removeItem(at: pdfURL) }
 
         let input = "Read \(pdfURL.path)"
-        let parts = input.contentParts()
+        let result = try #require(input.contentParts())
 
-        #expect(parts != nil)
-        let hasPDF = parts?.contains {
+        let hasPDF = result.parts.contains {
             if case .pdf = $0 { return true }
             return false
         }
-        #expect(hasPDF == true)
+        #expect(hasPDF)
     }
 
     @Test("Remote https URL with image extension is extracted")
@@ -132,11 +131,11 @@ struct ContentPartsTests {
         // We can't actually load a remote URL in tests, so this should fall back to text
         // since the URL won't load. But the regex should still match it.
         let input = "See https://example.com/photo.png for details"
-        let parts = input.contentParts()
+        let result = input.contentParts()
 
         // The URL will fail to load, so it falls back to text — overall returns nil
         // since no media was successfully loaded
-        #expect(parts == nil)
+        #expect(result == nil)
     }
 
     @Test("Unknown extension is left as text")
@@ -162,13 +161,71 @@ struct ContentPartsTests {
         try pngData.write(to: imageURL)
         defer { try? FileManager.default.removeItem(at: imageURL) }
 
-        let parts = imageURL.path.contentParts()
-        #expect(parts != nil)
-        #expect(parts?.count == 1)
-        if case .image = parts?[0] {
+        let result = try #require(imageURL.path.contentParts())
+        #expect(result.parts.count == 1)
+        if case .image = result.parts[0] {
             // OK
         } else {
             Issue.record("Expected single .image part")
         }
+    }
+}
+
+@Suite("ParsedContent.displayText")
+struct DisplayTextTests {
+    @Test("Display text replaces single image path with label")
+    func singleImage() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let imageURL = tempDir.appendingPathComponent("photo.png")
+        let pngData = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        try pngData.write(to: imageURL)
+        defer { try? FileManager.default.removeItem(at: imageURL) }
+
+        let input = "What is this? \(imageURL.path)"
+        let result = try #require(input.contentParts())
+
+        #expect(result.displayText == "What is this? [Image 1: photo.png]")
+    }
+
+    @Test("Display text numbers multiple images sequentially")
+    func multipleImages() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let img1 = tempDir.appendingPathComponent("cat.png")
+        let img2 = tempDir.appendingPathComponent("dog.jpg")
+        let pngData = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        let jpegData = Data([0xFF, 0xD8, 0xFF, 0xE0])
+        try pngData.write(to: img1)
+        try jpegData.write(to: img2)
+        defer {
+            try? FileManager.default.removeItem(at: img1)
+            try? FileManager.default.removeItem(at: img2)
+        }
+
+        let input = "Compare \(img1.path) with \(img2.path)"
+        let result = try #require(input.contentParts())
+
+        #expect(result.displayText == "Compare [Image 1: cat.png] with [Image 2: dog.jpg]")
+    }
+
+    @Test("Display text uses PDF label for PDF files")
+    func pdfLabel() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let pdfURL = tempDir.appendingPathComponent("report.pdf")
+        try Data("%PDF-1.4".utf8).write(to: pdfURL)
+        defer { try? FileManager.default.removeItem(at: pdfURL) }
+
+        let input = "Summarize \(pdfURL.path)"
+        let result = try #require(input.contentParts())
+
+        #expect(result.displayText == "Summarize [PDF 1: report.pdf]")
+    }
+
+    @Test("Display text keeps failed paths as-is")
+    func failedPathKeptAsText() {
+        // A matched but unloadable path stays as raw text in displayText
+        let input = "Check /nonexistent/image.png please"
+        let result = input.contentParts()
+        // No media loaded → nil
+        #expect(result == nil)
     }
 }

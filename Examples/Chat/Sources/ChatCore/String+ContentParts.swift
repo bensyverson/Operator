@@ -9,16 +9,24 @@
 import Foundation
 import Operator
 
+/// The result of parsing a string for multimodal content.
+public struct ParsedContent: Sendable {
+    /// The content parts to send to the LLM (text and media interleaved).
+    public let parts: [ContentPart]
+
+    /// A human-readable version of the input with file paths replaced by
+    /// labels like `[Image 1: photo.png]` or `[PDF 1: report.pdf]`.
+    public let displayText: String
+}
+
 /// Supported media file extensions for multimodal content detection.
 private let mediaExtensions = Set(["jpg", "jpeg", "png", "gif", "webp", "pdf"])
 
+private let imageExtensions = Set(["jpg", "jpeg", "png", "gif", "webp"])
+
 /// Matches absolute paths, tilde paths, and http(s) URLs ending in a media extension.
-///
-/// Groups:
-/// - The full match is the path or URL
 private nonisolated(unsafe) let mediaPattern: Regex = {
     let extensions = mediaExtensions.joined(separator: "|")
-    // Match: ~/path/to/file.ext, /path/to/file.ext, or https://host/path/file.ext
     return try! Regex(
         #"(?:~/|/|https?://)[^\s]*\.(?:"# + extensions + #")"#,
         as: Substring.self
@@ -27,18 +35,21 @@ private nonisolated(unsafe) let mediaPattern: Regex = {
 
 public extension String {
     /// Parses the string for local file paths and remote URLs pointing to
-    /// images or PDFs, returning an array of ``ContentPart``s if any media
-    /// was found and successfully loaded.
+    /// images or PDFs, returning ``ParsedContent`` with the content parts
+    /// and a display-friendly version of the text.
     ///
-    /// - Returns: An array of content parts with interleaved text and media,
+    /// - Returns: A ``ParsedContent`` with parts and display text,
     ///   or `nil` if no media was detected or loaded.
-    func contentParts() -> [ContentPart]? {
+    func contentParts() -> ParsedContent? {
         let matches = Array(matches(of: mediaPattern))
         guard !matches.isEmpty else { return nil }
 
         var parts = [ContentPart]()
+        var displaySegments = [String]()
         var currentIndex = startIndex
         var loadedMedia = false
+        var imageNumber = 0
+        var pdfNumber = 0
 
         for match in matches {
             let matchRange = match.range
@@ -49,17 +60,30 @@ public extension String {
                     .trimmingCharacters(in: .whitespaces)
                 if !text.isEmpty {
                     parts.append(.text(text))
+                    displaySegments.append(text)
                 }
             }
 
             // Try to load the media
             let rawPath = String(self[matchRange])
+            let filename = URL(fileURLWithPath: rawPath).lastPathComponent
+            let ext = URL(fileURLWithPath: rawPath).pathExtension.lowercased()
+
             if let part = loadMediaPart(from: rawPath) {
                 parts.append(part)
                 loadedMedia = true
+
+                if ext == "pdf" {
+                    pdfNumber += 1
+                    displaySegments.append("[PDF \(pdfNumber): \(filename)]")
+                } else {
+                    imageNumber += 1
+                    displaySegments.append("[Image \(imageNumber): \(filename)]")
+                }
             } else {
                 // Loading failed — keep as text
                 parts.append(.text(rawPath))
+                displaySegments.append(rawPath)
             }
 
             currentIndex = matchRange.upperBound
@@ -71,10 +95,13 @@ public extension String {
                 .trimmingCharacters(in: .whitespaces)
             if !text.isEmpty {
                 parts.append(.text(text))
+                displaySegments.append(text)
             }
         }
 
-        return loadedMedia ? parts : nil
+        guard loadedMedia else { return nil }
+        let displayText = displaySegments.joined(separator: " ")
+        return ParsedContent(parts: parts, displayText: displayText)
     }
 }
 
