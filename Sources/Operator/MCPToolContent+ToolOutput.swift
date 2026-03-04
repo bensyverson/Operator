@@ -1,28 +1,34 @@
+import Foundation
+import LLM
 import MCP
 
 extension ToolOutput {
     /// Creates a ``ToolOutput`` from MCP tool content.
     ///
-    /// Text content is included directly. Non-text types (images, audio,
-    /// resources) are represented as descriptive placeholders. Multiple
-    /// content items are joined with newlines.
+    /// Text content becomes ``ContentPart/text(_:)`` parts. Images with valid
+    /// base64 data become ``ContentPart/image(data:mediaType:filename:description:)``
+    /// parts; invalid base64 falls back to a text placeholder.
+    /// Non-image binary types (audio, resources) are represented as text placeholders.
     ///
     /// - Parameter content: The array of ``MCP/Tool/Content`` returned by an MCP tool call.
     init(mcpContent content: [Tool.Content]) {
-        let lines: [String] = content.map { item in
+        let parts: [ContentPart] = content.map { item in
             switch item {
             case let .text(text):
-                text
-            case let .image(_, mimeType, _):
-                "[Image: \(mimeType)]"
+                return ContentPart.text(text)
+            case let .image(data, mimeType, _):
+                if let decoded = Data(base64Encoded: data) {
+                    return ContentPart.image(data: decoded, mediaType: mimeType)
+                }
+                return ContentPart.text("[Image: \(mimeType)]")
             case let .audio(_, mimeType):
-                "[Audio: \(mimeType)]"
+                return ContentPart.text("[Audio: \(mimeType)]")
             case let .resource(resource, _, _):
-                "[Resource: \(resource.uri)]"
+                return ContentPart.text("[Resource: \(resource.uri)]")
             case let .resourceLink(uri, name, _, _, _, _):
-                "[Resource: \(name) (\(uri))]"
+                return ContentPart.text("[Resource: \(name) (\(uri))]")
             }
         }
-        self.init(lines)
+        self.init(parts)
     }
 }

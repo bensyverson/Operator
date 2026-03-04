@@ -39,6 +39,12 @@ public typealias FunctionCall = LLM.OpenAICompatibleAPI.FunctionCall
 /// A chat message in a conversation.
 public typealias ChatMessage = LLM.OpenAICompatibleAPI.ChatMessage
 
+/// A single part of a message's content (text, image, PDF, etc.).
+///
+/// Messages can contain multiple content parts, enabling multimodal interactions
+/// with models that support vision and document understanding.
+public typealias ContentPart = LLM.OpenAICompatibleAPI.ContentPart
+
 /// An LLM provider configuration (API endpoint and credentials).
 ///
 /// ```swift

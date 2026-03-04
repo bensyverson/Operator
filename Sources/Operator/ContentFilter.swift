@@ -1,7 +1,11 @@
+import LLM
+
 /// A bidirectional content filter middleware.
 ///
 /// Redacts outbound messages matching ``blockedPatterns`` and
 /// detects ``secrets`` leaking in LLM responses.
+///
+/// Scans both text content and image descriptions for blocked patterns.
 ///
 /// ```swift
 /// let filter = ContentFilter(
@@ -22,15 +26,14 @@ public struct ContentFilter: Middleware, @unchecked Sendable {
         self.secrets = secrets
     }
 
-    /// Redacts blocked patterns from outbound messages.
+    /// Redacts blocked patterns from outbound message content parts.
     public func beforeRequest(_ context: inout RequestContext) async throws {
+        guard !blockedPatterns.isEmpty else { return }
+
         for i in context.messages.indices {
-            guard let content = context.messages[i].content else { continue }
-            var filtered = content
-            for pattern in blockedPatterns {
-                filtered = filtered.replacing(pattern, with: "[redacted]")
+            for j in context.messages[i].content.indices {
+                context.messages[i].content[j] = redact(context.messages[i].content[j])
             }
-            context.messages[i].content = filtered
         }
     }
 
@@ -41,6 +44,29 @@ public struct ContentFilter: Middleware, @unchecked Sendable {
             if text.contains(secret) {
                 throw MiddlewareError.secretDetected
             }
+        }
+    }
+
+    // MARK: - Private
+
+    /// Redacts blocked patterns from a single content part.
+    private func redact(_ part: ContentPart) -> ContentPart {
+        switch part {
+        case let .text(s):
+            var filtered = s
+            for pattern in blockedPatterns {
+                filtered = filtered.replacing(pattern, with: "[redacted]")
+            }
+            return .text(filtered)
+        case let .image(data, mediaType, filename, description):
+            guard let desc = description else { return part }
+            var filtered = desc
+            for pattern in blockedPatterns {
+                filtered = filtered.replacing(pattern, with: "[redacted]")
+            }
+            return .image(data: data, mediaType: mediaType, filename: filename, description: filtered)
+        default:
+            return part
         }
     }
 }

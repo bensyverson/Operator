@@ -27,7 +27,8 @@ struct ChatApp: App {
 
     var body: some View {
         VStack {
-            CommandBar().foregroundColor(.blue)
+            CommandBar()
+                .foregroundColor(.yellow)
             ChatView()
         }
         .environmentObject(state)

@@ -4,11 +4,12 @@ Mechanically reducing conversation history to manage context window usage.
 
 ## Overview
 
-``CompactionMiddleware`` is a built-in middleware that reduces the size of the conversation history without making any LLM calls. It operates in ``Middleware/beforeRequest(_:)`` using three progressive phases:
+``CompactionMiddleware`` is a built-in middleware that reduces the size of the conversation history without making any LLM calls. It operates in ``Middleware/beforeRequest(_:)`` using four progressive phases:
 
 1. **Truncate** — Tool outputs in older messages that exceed ``CompactionMiddleware/maxToolOutputLength`` characters are truncated, with a marker indicating how much was removed.
-2. **Collapse** — Old tool call/result pairs are replaced with brief summaries (e.g., `[Collapsed: called search, read_file]`).
-3. **Trim** — The oldest non-system messages are removed entirely when the estimated token count still exceeds ``CompactionMiddleware/targetTokenEstimate``.
+2. **Strip media** — Images and PDFs in older messages are replaced with text placeholders (e.g., `[Image: "photo.jpg"]`, `[PDF: "report.pdf"]`), preserving metadata while dramatically reducing token usage.
+3. **Collapse** — Old tool call/result pairs are replaced with brief summaries (e.g., `[Collapsed: called search, read_file]`).
+4. **Trim** — The oldest non-system messages are removed entirely when the estimated token count still exceeds ``CompactionMiddleware/targetTokenEstimate``.
 
 Each phase is more aggressive than the last. The middleware always preserves:
 - **System messages** — Never removed or modified.
@@ -68,7 +69,7 @@ CompactionMiddleware(
 
 ## Token Estimation
 
-CompactionMiddleware uses a rough heuristic for internal size decisions: `characterCount / 4`. This is only used to decide *how aggressively* to compact (phases 2 and 3), not *whether* to compact — that decision is driven by the actual API-reported pressure signals when ``pressureOnly`` is `true`.
+CompactionMiddleware uses rough heuristics for internal size decisions: text characters / 4, each image ~1000 tokens, each PDF ~500 tokens. This means conversations with images trigger compaction sooner, which is appropriate given the token cost of vision input. These estimates are only used to decide *how aggressively* to compact (phases 3 and 4), not *whether* to compact — that decision is driven by the actual API-reported pressure signals when ``pressureOnly`` is `true`.
 
 ## Topics
 

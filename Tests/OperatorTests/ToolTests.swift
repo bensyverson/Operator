@@ -34,7 +34,7 @@ struct ToolTests {
 
         let args = try ToolArguments(fromJSON: #"{"name": "Alice"}"#)
         let output = try await tool.call(arguments: args)
-        #expect(output.content == "Hello, Alice!")
+        #expect(output.textContent == "Hello, Alice!")
     }
 
     @Test("No-input tool: create, call, verify output")
@@ -48,7 +48,7 @@ struct ToolTests {
 
         let args = try ToolArguments(fromJSON: "{}")
         let output = try await tool.call(arguments: args)
-        #expect(output.content == "pong")
+        #expect(output.textContent == "pong")
     }
 
     @Test("Direct ToolProvider conformance (Tier 3)")
@@ -78,7 +78,7 @@ struct ToolTests {
 
         let args = try ToolArguments(fromJSON: #"{"n": 42}"#)
         let output = try await tool.call(arguments: args)
-        #expect(output.content == "Count: 42")
+        #expect(output.textContent == "Count: 42")
     }
 
     @Test("ToolGroup with result builder syntax")

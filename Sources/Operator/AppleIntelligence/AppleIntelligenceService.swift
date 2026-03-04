@@ -38,7 +38,7 @@
                         let session = LanguageModelSession(instructions: instructions)
 
                         // The final message should be the user's latest input
-                        let userMessage: String = conversationSnapshot.messages.last?.content ?? ""
+                        let userMessage: String = conversationSnapshot.messages.last?.textContent ?? ""
                         let response = try await session.respond(to: userMessage)
                         let responseText = response.content
 

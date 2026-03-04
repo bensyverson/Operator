@@ -134,7 +134,7 @@ struct OperationTests {
         let op = Operation.toolCompleted(request, output)
         if case let .toolCompleted(req, out) = op {
             #expect(req.name == "read")
-            #expect(out.content == "file contents")
+            #expect(out.textContent == "file contents")
         } else {
             Issue.record("Expected .toolCompleted")
         }

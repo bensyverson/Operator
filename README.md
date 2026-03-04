@@ -71,6 +71,7 @@ for await operation in operative.run("What's the host and port of https://exampl
 - **[Budget](Sources/Operator/Documentation.docc/Budget.md)** — Controlling how long and how far an agent can run
 - **[Operations](Sources/Operator/Documentation.docc/Operations.md)** — The real-time event stream
 - **[Apple Intelligence](Sources/Operator/Documentation.docc/AppleIntelligence.md)** — On-device Foundation Models integration (macOS 26+, iOS 26+)
+- **[Multimodal Content](Sources/Operator/Documentation.docc/MultimodalContent.md)** — Sending images, PDFs, and mixed media in conversations and tool results
 - **[MCP Integration](Sources/Operator/Documentation.docc/MCPIntegration.md)** — Connect to MCP servers and use their tools with any Operative
 
 Generate HTML docs with:

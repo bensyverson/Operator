@@ -7,14 +7,14 @@ import Testing
 /// A middleware that does nothing (uses all defaults).
 private struct NoOpMiddleware: Middleware {}
 
-/// A middleware that appends a suffix to every message's content.
+/// A middleware that appends a suffix to every message's text content.
 private struct MessageAppender: Middleware {
     let suffix: String
 
     func beforeRequest(_ context: inout RequestContext) async throws {
         for i in context.messages.indices {
-            if let content = context.messages[i].content {
-                context.messages[i].content = content + suffix
+            if let text = context.messages[i].textContent {
+                context.messages[i].content = [.text(text + suffix)]
             }
         }
     }
@@ -59,7 +59,7 @@ struct MiddlewareProtocolTests {
             toolDefinitions: []
         )
         try await middleware.beforeRequest(&reqCtx)
-        #expect(reqCtx.messages[0].content == "Hello")
+        #expect(reqCtx.messages[0].textContent == "Hello")
 
         var respCtx = ResponseContext(responseText: "World")
         try await middleware.afterResponse(&respCtx)
@@ -104,7 +104,7 @@ struct MiddlewareProtocolTests {
             toolDefinitions: []
         )
         try await middleware.beforeRequest(&reqCtx)
-        #expect(reqCtx.messages[0].content == "Hello [filtered]")
+        #expect(reqCtx.messages[0].textContent == "Hello [filtered]")
 
         // afterResponse should be no-op
         var respCtx = ResponseContext(responseText: "World")
@@ -128,7 +128,7 @@ struct MiddlewareProtocolTests {
             try await middleware.beforeRequest(&ctx)
         }
 
-        #expect(ctx.messages[0].content == "Hello [A] [B]")
+        #expect(ctx.messages[0].textContent == "Hello [A] [B]")
     }
 
     @Test("Pipeline ordering — beforeToolCalls rejection visible to later middleware")
@@ -203,7 +203,7 @@ struct ContentFilterTests {
             toolDefinitions: []
         )
         try await filter.beforeRequest(&ctx)
-        #expect(ctx.messages[0].content == "My [redacted] is secret123")
+        #expect(ctx.messages[0].textContent == "My [redacted] is secret123")
     }
 
     @Test("Multiple patterns")
@@ -218,7 +218,7 @@ struct ContentFilterTests {
             toolDefinitions: []
         )
         try await filter.beforeRequest(&ctx)
-        #expect(ctx.messages[0].content == "My [redacted] is [redacted]")
+        #expect(ctx.messages[0].textContent == "My [redacted] is [redacted]")
     }
 
     @Test("Passes clean messages unchanged")
@@ -233,7 +233,7 @@ struct ContentFilterTests {
             toolDefinitions: []
         )
         try await filter.beforeRequest(&ctx)
-        #expect(ctx.messages[0].content == "Hello, world!")
+        #expect(ctx.messages[0].textContent == "Hello, world!")
     }
 
     @Test("Detects secrets in afterResponse")
@@ -270,26 +270,26 @@ struct ContentFilterTests {
             toolDefinitions: []
         )
         try await filter.beforeRequest(&reqCtx)
-        #expect(reqCtx.messages[0].content == "Hello password secret")
+        #expect(reqCtx.messages[0].textContent == "Hello password secret")
 
         var respCtx = ResponseContext(responseText: "sk-abc123")
         try await filter.afterResponse(&respCtx)
         #expect(respCtx.responseText == "sk-abc123")
     }
 
-    @Test("Handles messages with nil content")
-    func handlesNilContent() async throws {
+    @Test("Handles messages with empty content")
+    func handlesEmptyContent() async throws {
         let filter = try ContentFilter(
             blockedPatterns: [Regex("password")],
             secrets: []
         )
 
         var ctx = RequestContext(
-            messages: [Message(role: .assistant, content: nil)],
+            messages: [Message(role: .assistant)],
             toolDefinitions: []
         )
         try await filter.beforeRequest(&ctx)
-        #expect(ctx.messages[0].content == nil)
+        #expect(ctx.messages[0].content.isEmpty)
     }
 }
 

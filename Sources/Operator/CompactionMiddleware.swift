@@ -1,13 +1,17 @@
+import LLM
+
 /// Middleware that mechanically reduces conversation history length.
 ///
-/// CompactionMiddleware operates in three progressive phases during
+/// CompactionMiddleware operates in four progressive phases during
 /// ``Middleware/beforeRequest(_:)``:
 ///
 /// 1. **Truncate** — Long tool outputs in older messages are truncated
 ///    to ``maxToolOutputLength`` characters.
-/// 2. **Collapse** — Old tool call/result pairs are collapsed into brief
+/// 2. **Strip media** — Images and PDFs in older messages are replaced
+///    with text placeholders preserving metadata, reducing token usage.
+/// 3. **Collapse** — Old tool call/result pairs are collapsed into brief
 ///    summaries when the estimated token count exceeds ``targetTokenEstimate``.
-/// 3. **Trim** — The oldest messages are removed (preserving system messages
+/// 4. **Trim** — The oldest messages are removed (preserving system messages
 ///    and the most recent ``preserveRecentTurns`` turns) when still over target.
 ///
 /// This middleware performs no LLM calls — it uses mechanical heuristics only.
@@ -84,7 +88,10 @@ public struct CompactionMiddleware: Middleware, Sendable {
         let preserveBoundary = computePreserveBoundary(messages: context.messages)
         truncateToolOutputs(messages: &context.messages, preserveAfter: preserveBoundary)
 
-        // Phase 2: Collapse old tool call/result pairs (if over target)
+        // Phase 2: Strip media from old messages
+        stripMedia(messages: &context.messages, preserveAfter: preserveBoundary)
+
+        // Phase 3: Collapse old tool call/result pairs (if over target)
         if let target = targetTokenEstimate {
             let estimated = estimateTokens(messages: context.messages)
             if estimated > target {
@@ -92,7 +99,7 @@ public struct CompactionMiddleware: Middleware, Sendable {
             }
         }
 
-        // Phase 3: Trim oldest messages (if still over target)
+        // Phase 4: Trim oldest messages (if still over target)
         if let target = targetTokenEstimate {
             let estimated = estimateTokens(messages: context.messages)
             if estimated > target {
@@ -125,16 +132,53 @@ public struct CompactionMiddleware: Middleware, Sendable {
     private func truncateToolOutputs(messages: inout [Message], preserveAfter: Int) {
         for i in messages.indices where i < preserveAfter {
             if messages[i].role == .tool,
-               let content = messages[i].content,
-               content.count > maxToolOutputLength
+               let text = messages[i].textContent,
+               text.count > maxToolOutputLength
             {
-                let truncated = String(content.prefix(maxToolOutputLength))
-                messages[i].content = truncated + "\n[truncated — \(content.count - maxToolOutputLength) chars removed]"
+                let truncated = String(text.prefix(maxToolOutputLength))
+                messages[i].content = [.text(truncated + "\n[truncated — \(text.count - maxToolOutputLength) chars removed]")]
             }
         }
     }
 
-    /// Phase 2: Collapse old tool call/result pairs into summaries.
+    /// Phase 2: Replace media parts in old messages with text placeholders.
+    ///
+    /// For each message before the preserve boundary, replaces image and PDF
+    /// content parts with descriptive text placeholders preserving metadata.
+    private func stripMedia(messages: inout [Message], preserveAfter: Int) {
+        for i in messages.indices where i < preserveAfter {
+            guard messages[i].hasMedia else { continue }
+            messages[i].content = messages[i].content.map { part in
+                switch part {
+                case .text:
+                    return part
+                case let .image(_, _, filename, description):
+                    return .text(imagePlaceholder(filename: filename, description: description))
+                case let .pdf(_, title):
+                    if let title {
+                        return .text("[PDF: \"\(title)\"]")
+                    }
+                    return .text("[PDF]")
+                default:
+                    return .text("[Media]")
+                }
+            }
+        }
+    }
+
+    /// Builds a human-readable placeholder string for an image.
+    private func imagePlaceholder(filename: String?, description: String?) -> String {
+        switch (filename, description) {
+        case let (name?, desc?):
+            "[Image: \"\(name)\" — \(desc)]"
+        case let (name?, nil):
+            "[Image: \"\(name)\"]"
+        case (nil, _):
+            "[Image]"
+        }
+    }
+
+    /// Phase 3: Collapse old tool call/result pairs into summaries.
     private func collapseToolPairs(messages: inout [Message], preserveAfter: Int) {
         var i = 0
         while i < min(preserveAfter, messages.count) {
@@ -161,7 +205,7 @@ public struct CompactionMiddleware: Middleware, Sendable {
         }
     }
 
-    /// Phase 3: Trim the oldest non-system messages to get under the target.
+    /// Phase 4: Trim the oldest non-system messages to get under the target.
     private func trimOldMessages(messages: inout [Message], target: Int, preserveAfter _: Int) {
         while estimateTokens(messages: messages) > target {
             // Find the first non-system message that's before the preserve boundary
@@ -175,11 +219,23 @@ public struct CompactionMiddleware: Middleware, Sendable {
         }
     }
 
-    /// Rough token estimate: total characters / 4.
+    /// Rough token estimate accounting for text and media.
+    ///
+    /// Text: characters / 4. Each image: ~1000 tokens. Each PDF: ~500 tokens.
     private func estimateTokens(messages: [Message]) -> Int {
-        let totalChars = messages.reduce(0) { total, msg in
-            total + (msg.content?.count ?? 0)
+        messages.reduce(0) { total, msg in
+            total + msg.content.reduce(0) { partTotal, part in
+                switch part {
+                case let .text(s):
+                    partTotal + s.count / 4
+                case .image:
+                    partTotal + 1000
+                case .pdf:
+                    partTotal + 500
+                default:
+                    partTotal + 100
+                }
+            }
         }
-        return totalChars / 4
     }
 }

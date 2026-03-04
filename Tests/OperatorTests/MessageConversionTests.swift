@@ -1,3 +1,4 @@
+import Foundation
 import LLM
 @testable import Operator
 import Testing
@@ -12,7 +13,7 @@ struct MessageConversionTests {
         )
         let message = Message(from: chatMessage)
         #expect(message.role == .system)
-        #expect(message.content == "You are a helper")
+        #expect(message.textContent == "You are a helper")
         #expect(message.toolCallId == nil)
     }
 
@@ -24,7 +25,7 @@ struct MessageConversionTests {
         )
         let message = Message(from: chatMessage)
         #expect(message.role == .user)
-        #expect(message.content == "Hello")
+        #expect(message.textContent == "Hello")
     }
 
     @Test("init(from:) maps assistant role")
@@ -35,7 +36,7 @@ struct MessageConversionTests {
         )
         let message = Message(from: chatMessage)
         #expect(message.role == .assistant)
-        #expect(message.content == "Hi there")
+        #expect(message.textContent == "Hi there")
     }
 
     @Test("init(from:) maps tool role and preserves tool_call_id")
@@ -47,19 +48,19 @@ struct MessageConversionTests {
         )
         let message = Message(from: chatMessage)
         #expect(message.role == .tool)
-        #expect(message.content == "result data")
+        #expect(message.textContent == "result data")
         #expect(message.toolCallId == "call_123")
     }
 
-    @Test("init(from:) handles nil content")
-    func initFromNilContent() {
+    @Test("init(from:) handles empty content")
+    func initFromEmptyContent() {
         let chatMessage = LLM.OpenAICompatibleAPI.ChatMessage(
             content: nil,
             role: .assistant
         )
         let message = Message(from: chatMessage)
         #expect(message.role == .assistant)
-        #expect(message.content == nil)
+        #expect(message.content.isEmpty)
     }
 
     @Test("toChatMessage() round-trips correctly")
@@ -67,7 +68,7 @@ struct MessageConversionTests {
         let original = Message(role: .user, content: "Hello world")
         let chatMessage = original.toChatMessage()
         #expect(chatMessage.role == .user)
-        #expect(chatMessage.content == "Hello world")
+        #expect(chatMessage.textContent == "Hello world")
         #expect(chatMessage.tool_call_id == nil)
 
         let roundTripped = Message(from: chatMessage)
@@ -79,7 +80,7 @@ struct MessageConversionTests {
         let original = Message(role: .tool, content: "done", toolCallId: "call_456")
         let chatMessage = original.toChatMessage()
         #expect(chatMessage.role == .tool)
-        #expect(chatMessage.content == "done")
+        #expect(chatMessage.textContent == "done")
         #expect(chatMessage.tool_call_id == "call_456")
     }
 
@@ -100,7 +101,7 @@ struct MessageConversionTests {
         )
         let message = Message(from: chatMessage)
         #expect(message.role == .assistant)
-        #expect(message.content == nil)
+        #expect(message.content.isEmpty)
         #expect(message.toolCalls?.count == 1)
         #expect(message.toolCalls?.first?.id == "call_abc")
         #expect(message.toolCalls?.first?.name == "getCurrentTime")
@@ -122,6 +123,38 @@ struct MessageConversionTests {
         #expect(chatMessage.tool_calls?.first?.id == "call_xyz")
         #expect(chatMessage.tool_calls?.first?.function.name == "dateMath")
         #expect(chatMessage.tool_calls?.first?.function.arguments == "{\"value\":5}")
+
+        let roundTripped = Message(from: chatMessage)
+        #expect(roundTripped == original)
+    }
+
+    @Test("init(from:) preserves multimodal content")
+    func initFromMultimodalContent() {
+        let imageData = Data([0xFF, 0xD8])
+        let chatMessage = LLM.OpenAICompatibleAPI.ChatMessage(
+            content: [
+                .text("Look at this:"),
+                .image(data: imageData, mediaType: "image/jpeg"),
+            ],
+            role: .user
+        )
+        let message = Message(from: chatMessage)
+        #expect(message.content.count == 2)
+        #expect(message.textContent == "Look at this:")
+        #expect(message.hasMedia == true)
+    }
+
+    @Test("toChatMessage() preserves multimodal content")
+    func toChatMessagePreservesMultimodal() {
+        let imageData = Data([0xFF, 0xD8])
+        let original = Message(role: .user, content: [
+            .text("Caption"),
+            .image(data: imageData, mediaType: "image/jpeg"),
+        ])
+        let chatMessage = original.toChatMessage()
+        #expect(chatMessage.content.count == 2)
+        #expect(chatMessage.textContent == "Caption")
+        #expect(chatMessage.hasMedia == true)
 
         let roundTripped = Message(from: chatMessage)
         #expect(roundTripped == original)

@@ -39,8 +39,8 @@ struct CompactionMiddlewareTests {
 
         let toolMessage = ctx.messages.first(where: { $0.role == .tool })
         #expect(toolMessage != nil)
-        #expect((toolMessage?.content?.count ?? 0) < 5000) // Significantly smaller than original
-        #expect(toolMessage?.content?.contains("[truncated") == true)
+        #expect((toolMessage?.textContent?.count ?? 0) < 5000) // Significantly smaller than original
+        #expect(toolMessage?.textContent?.contains("[truncated") == true)
     }
 
     @Test("Preserves tool outputs under threshold")
@@ -59,7 +59,7 @@ struct CompactionMiddlewareTests {
         try await compactor.beforeRequest(&ctx)
 
         let toolMessage = ctx.messages.first(where: { $0.role == .tool })
-        #expect(toolMessage?.content == shortOutput)
+        #expect(toolMessage?.textContent == shortOutput)
     }
 
     @Test("Preserves recent N turns from collapsing")
@@ -97,11 +97,11 @@ struct CompactionMiddlewareTests {
 
         // Old tool output truncated
         let oldTool = toolMessages.first(where: { $0.toolCallId == "call_old" })
-        #expect(oldTool?.content?.contains("[truncated") == true)
+        #expect(oldTool?.textContent?.contains("[truncated") == true)
 
         // Recent tool output preserved
         let newTool = toolMessages.first(where: { $0.toolCallId == "call_new" })
-        #expect(newTool?.content == longOutput)
+        #expect(newTool?.textContent == longOutput)
     }
 
     @Test("Trims oldest messages when over target")
@@ -127,9 +127,9 @@ struct CompactionMiddlewareTests {
         #expect(ctx.messages.count < messages.count)
         // System message preserved
         #expect(ctx.messages[0].role == .system)
-        #expect(ctx.messages[0].content == "System prompt")
+        #expect(ctx.messages[0].textContent == "System prompt")
         // Final question preserved
-        #expect(ctx.messages.last?.content == "Final question")
+        #expect(ctx.messages.last?.textContent == "Final question")
     }
 
     @Test("Preserves system messages during trimming")
@@ -149,7 +149,7 @@ struct CompactionMiddlewareTests {
         try await compactor.beforeRequest(&ctx)
 
         #expect(ctx.messages[0].role == .system)
-        #expect(ctx.messages[0].content == "Important system instructions")
+        #expect(ctx.messages[0].textContent == "Important system instructions")
     }
 
     @Test("pressureOnly mode skips compaction without pressure")
@@ -173,7 +173,7 @@ struct CompactionMiddlewareTests {
 
         // Tool output should NOT be truncated (no pressure)
         let toolMessage = ctx.messages.first(where: { $0.role == .tool })
-        #expect(toolMessage?.content == longOutput)
+        #expect(toolMessage?.textContent == longOutput)
     }
 
     @Test("pressureOnly mode runs when pressure present")
@@ -203,7 +203,7 @@ struct CompactionMiddlewareTests {
 
         // Tool output SHOULD be truncated (pressure present)
         let toolMessage = ctx.messages.first(where: { $0.role == .tool })
-        #expect(toolMessage?.content?.contains("[truncated") == true)
+        #expect(toolMessage?.textContent?.contains("[truncated") == true)
     }
 
     @Test("No-op on short conversations")
@@ -220,8 +220,8 @@ struct CompactionMiddlewareTests {
         try await compactor.beforeRequest(&ctx)
 
         #expect(ctx.messages.count == 2)
-        #expect(ctx.messages[0].content == "System")
-        #expect(ctx.messages[1].content == "Hello")
+        #expect(ctx.messages[0].textContent == "System")
+        #expect(ctx.messages[1].textContent == "Hello")
     }
 
     @Test("Integration: full agent loop with compaction middleware")

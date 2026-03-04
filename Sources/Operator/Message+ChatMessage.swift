@@ -4,7 +4,7 @@ import LLM
 public extension Message {
     /// Creates a ``Message`` from an LLM wire-format ``ChatMessage``.
     ///
-    /// Maps ChatMessage roles to Message roles and preserves content,
+    /// Maps ChatMessage roles to Message roles and preserves content parts,
     /// tool call ID, and tool calls fields.
     init(from chatMessage: LLM.OpenAICompatibleAPI.ChatMessage) {
         let role: Role = switch chatMessage.role {

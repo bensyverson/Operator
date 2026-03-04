@@ -53,7 +53,7 @@
             do {
                 let output = try await execute(input)
                 eventHandler(.toolCompleted(request, output))
-                return output.content
+                return output.textContent ?? ""
             } catch {
                 let toolError = ToolError(
                     message: error.localizedDescription,

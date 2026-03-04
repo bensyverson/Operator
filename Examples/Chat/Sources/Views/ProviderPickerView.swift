@@ -44,6 +44,7 @@ struct ProviderPickerView: View {
                 }
             }
             .disabled(!canStart)
+            .buttonStyle(.bordered)
         }
         .padding(horizontal: 2, vertical: 1)
         .border(.rounded)

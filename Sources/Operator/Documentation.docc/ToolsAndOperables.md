@@ -194,22 +194,30 @@ Every tool returns a ``ToolOutput``, which wraps the result that gets fed back t
 
 ```swift
 struct ToolOutput: Friendly {
-    let content: String
+    let content: [ContentPart]
 }
 ```
 
-``ToolOutput`` can be initialized from a ``String``, an array of strings (joined with newlines), or any ``Encodable`` value (serialized to JSON). The content is always a string because that is what the LLM consumes as a tool result.
+``ToolOutput`` can be initialized from a ``String``, an array of strings (joined with newlines), any ``Encodable`` value (serialized to JSON), or an array of ``ContentPart`` values for multimodal results.
 
 ```swift
 // From a string
 ToolOutput("File contents here")
 
-// From an array
+// From an array of strings
 ToolOutput(["line 1", "line 2", "line 3"])
 
 // From an Encodable value
-ToolOutput(encoding: myStruct)
+try ToolOutput(encoding: myStruct)
+
+// From multimodal content parts
+ToolOutput([
+    .text("Here's a screenshot:"),
+    .image(data: imageData, mediaType: "image/png"),
+])
 ```
+
+Use ``ToolOutput/textContent`` to access just the text portions. See <doc:MultimodalContent> for details on multimodal tool results.
 
 ## Topics
 

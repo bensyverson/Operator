@@ -64,12 +64,13 @@ extension ChatState {
                 }
 
             case let .toolCompleted(req, output):
+                let outputText = output.textContent ?? "[media content]"
                 messages.append(ChatMessage(
                     id: UUID(),
                     role: .toolOutput,
-                    text: output.content,
+                    text: outputText,
                     toolName: req.name,
-                    toolOutput: output.content
+                    toolOutput: outputText
                 ))
 
             case let .toolFailed(req, error):

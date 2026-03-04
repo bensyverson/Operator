@@ -250,7 +250,7 @@ struct ToolHandlingLLMServiceDelegationTests {
             case let .toolCompleted(request, output):
                 foundToolCompleted = true
                 #expect(request.name == "echo")
-                #expect(output.content == "hello")
+                #expect(output.textContent == "hello")
             case let .text(text):
                 foundText = true
                 #expect(text == "Result: hello")

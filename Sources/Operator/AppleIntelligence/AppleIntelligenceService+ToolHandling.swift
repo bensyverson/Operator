@@ -50,7 +50,7 @@
             )))
 
             // 5. Call respond(to:) with timeout if budget specifies one
-            let userMessage = conversation.messages.last?.content ?? ""
+            let userMessage = conversation.messages.last?.textContent ?? ""
 
             do {
                 // Extract the String content inside the task boundary to avoid

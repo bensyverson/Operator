@@ -15,13 +15,13 @@ struct MessageTests {
         }
     }
 
-    @Test("Codable round-trip with nil content")
-    func codableNilContent() throws {
-        let message = Message(role: .assistant, content: nil)
+    @Test("Codable round-trip with empty content")
+    func codableEmptyContent() throws {
+        let message = Message(role: .assistant)
         let data = try JSONEncoder().encode(message)
         let decoded = try JSONDecoder().decode(Message.self, from: data)
         #expect(decoded == message)
-        #expect(decoded.content == nil)
+        #expect(decoded.content.isEmpty)
     }
 
     @Test("Message with toolCallId round-trip")

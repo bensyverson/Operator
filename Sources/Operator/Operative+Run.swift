@@ -52,6 +52,45 @@ extension Operative {
         return runLoop(with: continued)
     }
 
+    /// Runs the agent loop with multimodal content parts.
+    ///
+    /// Use this overload to send images, PDFs, or mixed text-and-media
+    /// content to models that support vision or document understanding.
+    ///
+    /// - Parameter parts: The content parts to send as the user message.
+    /// - Returns: A stream of operation events.
+    public func run(_ parts: [ContentPart]) -> OperationStream {
+        var config = configuration
+        config.tools = toolDefinitions.isEmpty ? nil : toolDefinitions
+
+        let conversation = Conversation(
+            systemPrompt: systemPrompt,
+            messages: [
+                ChatMessage(content: parts, role: .user),
+            ],
+            configuration: config
+        )
+
+        return runLoop(with: conversation)
+    }
+
+    /// Continues the agent loop from a previous conversation with multimodal content.
+    ///
+    /// - Parameters:
+    ///   - parts: The content parts to send as the next user message.
+    ///   - conversation: The conversation from a previous ``OperativeResult``.
+    /// - Returns: A stream of operation events.
+    public func run(_ parts: [ContentPart], continuing conversation: Conversation) -> OperationStream {
+        var continued = conversation
+        continued.messages.append(
+            ChatMessage(content: parts, role: .user)
+        )
+        if continued.configuration.tools == nil, !toolDefinitions.isEmpty {
+            continued.configuration.tools = toolDefinitions
+        }
+        return runLoop(with: continued)
+    }
+
     // MARK: - Private
 
     private func runLoop(with initialConversation: Conversation) -> OperationStream {
@@ -374,7 +413,7 @@ extension Operative {
                         )
                         if output.shouldStop {
                             shouldStop = true
-                            stopReason = output.content
+                            stopReason = output.textContent ?? "Tool requested stop"
                         }
                     case let .failure(error):
                         // Run error middleware

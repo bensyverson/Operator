@@ -14,7 +14,7 @@ The foundation layer. LLM handles raw communication with language model provider
 - **Provider-agnostic**: A single API surface with provider-specific serialization handled internally.
 - **Minimal**: It sends prompts, receives responses, manages rate limits, and nothing more.
 
-LLM defines the wire types that flow between your application and the model: ``LLM/OpenAICompatibleAPI/ChatMessage``, ``LLM/ToolDefinition``, ``LLM/JSONSchema``, and others. Operator builds on these types but does not expose them directly to tool authors.
+LLM defines the wire types that flow between your application and the model: ``ChatMessage``, ``ToolDefinition``, ``JSONSchema``, ``ContentPart``, and others. ``ContentPart`` enables multimodal content (text, images, PDFs) in messages and tool results. Operator builds on these types but does not expose them directly to tool authors.
 
 ### Operator
 

@@ -7,14 +7,14 @@ struct ToolOutputTests {
     @Test("Init from String")
     func initFromString() {
         let output = ToolOutput("Hello, world!")
-        #expect(output.content == "Hello, world!")
+        #expect(output.textContent == "Hello, world!")
         #expect(output.shouldStop == false)
     }
 
     @Test("Init from [String] joins with newlines")
     func initFromLines() {
         let output = ToolOutput(["line 1", "line 2", "line 3"])
-        #expect(output.content == "line 1\nline 2\nline 3")
+        #expect(output.textContent == "line 1\nline 2\nline 3")
         #expect(output.shouldStop == false)
     }
 
@@ -26,7 +26,7 @@ struct ToolOutputTests {
         }
         let output = try ToolOutput(encoding: TestValue(name: "test", count: 42))
         // Should be valid JSON
-        let parsed = try JSONSerialization.jsonObject(with: Data(output.content.utf8))
+        let parsed = try JSONSerialization.jsonObject(with: Data(#require(output.textContent?.utf8)))
         let dict = try #require(parsed as? [String: Any])
         #expect(dict["name"] as? String == "test")
         #expect(dict["count"] as? Int == 42)
@@ -37,7 +37,7 @@ struct ToolOutputTests {
     func stopReason() {
         let output = ToolOutput.stop(reason: "Task complete")
         #expect(output.shouldStop == true)
-        #expect(output.content == "Task complete")
+        #expect(output.textContent == "Task complete")
     }
 
     @Test("Default shouldStop is false")

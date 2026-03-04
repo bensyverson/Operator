@@ -56,9 +56,13 @@ struct ProfanityFilter: Middleware {
 
     func beforeRequest(_ context: inout RequestContext) async throws {
         for i in context.messages.indices {
-            for pattern in patterns {
-                if let content = context.messages[i].content {
-                    context.messages[i].content = content.replacing(pattern, with: "[redacted]")
+            for j in context.messages[i].content.indices {
+                if case let .text(text) = context.messages[i].content[j] {
+                    var filtered = text
+                    for pattern in patterns {
+                        filtered = filtered.replacing(pattern, with: "[redacted]")
+                    }
+                    context.messages[i].content[j] = .text(filtered)
                 }
             }
         }
@@ -103,11 +107,15 @@ struct ContentFilter: Middleware {
     let secrets: [String]
 
     func beforeRequest(_ context: inout RequestContext) async throws {
-        // Filter outbound content
+        // Filter outbound text content (Message.content is [ContentPart])
         for i in context.messages.indices {
-            for pattern in blockedPatterns {
-                if let content = context.messages[i].content {
-                    context.messages[i].content = content.replacing(pattern, with: "[redacted]")
+            for j in context.messages[i].content.indices {
+                if case let .text(text) = context.messages[i].content[j] {
+                    var filtered = text
+                    for pattern in blockedPatterns {
+                        filtered = filtered.replacing(pattern, with: "[redacted]")
+                    }
+                    context.messages[i].content[j] = .text(filtered)
                 }
             }
         }

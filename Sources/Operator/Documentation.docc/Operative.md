@@ -120,6 +120,20 @@ let result2 = try await operative.run("What's my name?", continuing: result1.con
 
 Each call to ``run(_:continuing:)`` gets a fresh budget. The conversation history (including all tool calls and results) is preserved, so the agent has full context from prior turns.
 
+### Multimodal Input
+
+Both ``run(_:)`` and ``run(_:continuing:)`` have overloads that accept `[ContentPart]` instead of a plain string, enabling you to send images, PDFs, and mixed media:
+
+```swift
+let imageData = try Data(contentsOf: imageURL)
+let stream = operative.run([
+    .text("What's in this image?"),
+    .image(data: imageData, mediaType: "image/jpeg"),
+])
+```
+
+See <doc:MultimodalContent> for full details.
+
 For more complex orchestration — multiple agents, planning, or persistent memory — use the [OperativeKit](https://github.com/bensyverson/OperativeKit) layer.
 
 ## Topics

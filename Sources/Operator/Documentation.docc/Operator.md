@@ -72,6 +72,10 @@ for await operation in operative.run("What's the host and port of https://exampl
 - <doc:ToolsAndOperables>
 - <doc:ToolInput>
 
+### Content
+
+- <doc:MultimodalContent>
+
 ### Configuration
 
 - <doc:Middleware>

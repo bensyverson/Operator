@@ -67,8 +67,9 @@ struct ClosureToolDecodingTests {
     func validArgsNoRegression() async throws {
         let args = try ToolArguments(fromJSON: #"{"path": "/tmp/test.txt", "content": "hello world"}"#)
         let output = try await writeTool.call(arguments: args)
-        #expect(output.content.contains("11 bytes"))
-        #expect(output.content.contains("/tmp/test.txt"))
+        let text = try #require(output.textContent)
+        #expect(text.contains("11 bytes"))
+        #expect(text.contains("/tmp/test.txt"))
     }
 
     @Test("ToolError.localizedDescription returns the message")

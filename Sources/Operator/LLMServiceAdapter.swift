@@ -37,6 +37,32 @@ public struct LLMServiceAdapter: LLMService {
         llm = LLM(provider: provider)
     }
 
+    /// Sets the image resizer on the underlying ``LLM`` actor.
+    ///
+    /// The resizer is called automatically when images exceed the model's
+    /// maximum input dimensions. On Apple platforms, a CoreGraphics-based
+    /// resizer is set by default.
+    ///
+    /// - Parameter resizer: A closure that resizes image data, or `nil` to disable.
+    public func setImageResizer(
+        _ resizer: (@Sendable (Data, String, CGSize) async throws -> Data)?
+    ) async {
+        await llm.setImageResizer(resizer)
+    }
+
+    /// Sets the image describer on the underlying ``LLM`` actor.
+    ///
+    /// When set, this closure is called during media stripping to generate
+    /// text descriptions for images that lack one, preserving semantic
+    /// information when images are removed from older messages.
+    ///
+    /// - Parameter describer: A closure that generates a text description, or `nil` to disable.
+    public func setImageDescriber(
+        _ describer: (@Sendable (Data, String) async throws -> String)?
+    ) async {
+        await llm.setImageDescriber(describer)
+    }
+
     public func chat(conversation: Conversation) -> AsyncThrowingStream<StreamEvent, Error> {
         let service = llm
         let conversationSnapshot = conversation

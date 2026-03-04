@@ -282,7 +282,7 @@ struct OperativeAgentLoopTests {
             case let .toolCompleted(request, output):
                 foundToolCompleted = true
                 #expect(request.name == "echo")
-                #expect(output.content == "ping")
+                #expect(output.textContent == "ping")
             case let .completed(result):
                 foundCompleted = true
                 #expect(result.text == "pong")

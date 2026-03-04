@@ -46,8 +46,9 @@ At moments when significant work has been completed and accepted by the user, of
 ## Development workflow
 
 - All Git commit messages should complete the sentence "This commit…", e.g. "Adds an email verification flow". You can then go on to detail the change with bullets or headers in the body of the commit.
-- IMPORTANT: Anytime we are working on code which should produce a known output (e.g. data extractors, calculation modules, utilities to list data), or we are refactoring code that lacks test coverage, we ALWAYS follow strict TDD; write tests for all known example cases we're working with, verify that they fail, and *then* proceed to implement your code changes. If you must alter the test to get it to pass, explain exactly WHY to the user and get their consent.
-- Prior to commiting changes, you must run the linter (`swiftformat . --lint`) and re-run to format if necessary (`swiftformat .`), or fix any issues manually if necessary. You must also run the full test suite (`swift test --quiet`). Linting and testing are both pre-commit hooks, so this will allow you to catch problems before attempting a commit.
+- IMPORTANT: In this project we ALWAYS follow strict "red/green" TDD; write tests for all example cases we need to handle and any new methods we're implementing, verify that they fail, and *then* proceed to implement your code changes. If you must alter a previous test to get it to pass, explain exactly WHY to the user and get their consent.
+- Before fixing a bug, try to create a regression test to catch it in the future.
+- DO NOT begin a new chat by doing an extensive exploration of the entire codebase. That is wasteful, as this is a large codebase. Instead, read the README and use an Explore agent to read the DocC documentation if you want to get the lay of the land. Of course, once you have a specific need, you can explore as much of the code as you require.
 
 ## Development Stage
 
@@ -72,3 +73,4 @@ When writing Swift, adhere to these guidelines:
 - When creating a new group of tests (new struct), place them in a new Swift file in the correct folder, rather than adding them to an existing file.
 - In general, stick to "one type per file;" don't define many types in a single source file. If you find yourself with a very long source file (over 200-300 lines), it's time to think about how to pull related methods into a separate file or extension.
 - When extending a type, place the extension in its own file, named `BaseType+ExtensionName.swift`—for example, if you need a custom Codable implementation for `Timeline`, it would be `Timeline+Codable.swift`. This applies to extending third-party types as well.
+- Prior to commiting changes, you must run the linter (`swiftformat . --lint`) and re-run to format if necessary (`swiftformat .`), or fix any issues manually if necessary. You must also run the full test suite (`swift test --quiet`). Linting and testing are both pre-commit hooks, so this will allow you to catch problems before attempting a commit.

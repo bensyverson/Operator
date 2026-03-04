@@ -152,7 +152,7 @@ struct MCPToolProxyCallTests {
         let args = try ToolArguments(fromJSON: #"{"name": "Alice"}"#)
         let output: ToolOutput = try await tool.call(arguments: args)
 
-        #expect(output.content == "Hello, Alice!")
+        #expect(output.textContent == "Hello, Alice!")
         #expect(receivedName == "greet")
         #expect(receivedArgs?["name"] == .string("Alice"))
 
@@ -182,7 +182,7 @@ struct MCPToolProxyCallTests {
 
         let args = try ToolArguments(fromJSON: #"{}"#)
         let output: ToolOutput = try await tool.call(arguments: args)
-        #expect(output.content == "pong")
+        #expect(output.textContent == "pong")
 
         await connection.disconnect()
         await server.stop()
@@ -212,7 +212,8 @@ struct MCPToolProxyCallTests {
 
         let args = try ToolArguments(fromJSON: #"{}"#)
         let output: ToolOutput = try await tool.call(arguments: args)
-        #expect(output.content == "Report summary:\n- Item 1\n- Item 2")
+        // Each MCP text item becomes its own ContentPart; textContent joins them
+        #expect(output.textContent == "Report summary:- Item 1- Item 2")
 
         await connection.disconnect()
         await server.stop()
@@ -336,7 +337,7 @@ struct MCPToolProxyCallTests {
         let args = try ToolArguments(fromJSON: #"{"a": 3, "b": 4}"#)
         let output: ToolOutput = try await tool.call(arguments: args)
 
-        #expect(output.content == "7")
+        #expect(output.textContent == "7")
         #expect(capturedArgs?["a"] == .int(3))
         #expect(capturedArgs?["b"] == .int(4))
 
