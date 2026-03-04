@@ -25,10 +25,13 @@ private let mediaExtensions = Set(["jpg", "jpeg", "png", "gif", "webp", "pdf"])
 private let imageExtensions = Set(["jpg", "jpeg", "png", "gif", "webp"])
 
 /// Matches absolute paths, tilde paths, and http(s) URLs ending in a media extension.
+/// Path segments may contain backslash-escaped spaces (e.g. `My\ Folder`).
 private nonisolated(unsafe) let mediaPattern: Regex = {
     let extensions = mediaExtensions.joined(separator: "|")
+    // Each path character is either a non-whitespace/non-backslash char,
+    // or a backslash followed by any character (shell escape sequence).
     return try! Regex(
-        #"(?:~/|/|https?://)[^\s]*\.(?:"# + extensions + #")"#,
+        #"(?:~/|/|https?://)(?:[^\s\\]|\\.)*\.(?:"# + extensions + #")"#,
         as: Substring.self
     ).ignoresCase()
 }()
@@ -66,8 +69,9 @@ public extension String {
 
             // Try to load the media
             let rawPath = String(self[matchRange])
-            let filename = URL(fileURLWithPath: rawPath).lastPathComponent
-            let ext = URL(fileURLWithPath: rawPath).pathExtension.lowercased()
+            let cleanPath = unescapeShellPath(rawPath)
+            let filename = URL(fileURLWithPath: cleanPath).lastPathComponent
+            let ext = URL(fileURLWithPath: cleanPath).pathExtension.lowercased()
 
             if let part = loadMediaPart(from: rawPath) {
                 parts.append(part)
@@ -105,14 +109,22 @@ public extension String {
     }
 }
 
+/// Strips shell-style backslash escapes (e.g. `\ ` → ` `, `\\` → `\`).
+private func unescapeShellPath(_ path: String) -> String {
+    path.replacing(#/\\(.)/#) { match in
+        String(match.1)
+    }
+}
+
 /// Resolves a raw path/URL string to a ``ContentPart``, or `nil` if loading fails.
 private func loadMediaPart(from rawPath: String) -> ContentPart? {
     let url: URL
     if rawPath.hasPrefix("~") {
-        let expanded = NSString(string: rawPath).expandingTildeInPath
+        let unescaped = unescapeShellPath(rawPath)
+        let expanded = NSString(string: unescaped).expandingTildeInPath
         url = URL(fileURLWithPath: expanded)
     } else if rawPath.hasPrefix("/") {
-        url = URL(fileURLWithPath: rawPath)
+        url = URL(fileURLWithPath: unescapeShellPath(rawPath))
     } else {
         guard let parsed = URL(string: rawPath) else { return nil }
         url = parsed

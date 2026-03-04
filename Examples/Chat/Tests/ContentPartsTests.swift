@@ -153,6 +153,46 @@ struct ContentPartsTests {
         #expect(result == nil)
     }
 
+    @Test("Backslash-escaped spaces in path are handled")
+    func escapedSpaces() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let spacedDir = tempDir.appendingPathComponent("My Folder \(UUID())")
+        try FileManager.default.createDirectory(at: spacedDir, withIntermediateDirectories: true)
+        let imageURL = spacedDir.appendingPathComponent("nice photo.png")
+        let pngData = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        try pngData.write(to: imageURL)
+        defer { try? FileManager.default.removeItem(at: spacedDir) }
+
+        // Shell-style escaped path: spaces preceded by backslashes
+        let escapedPath = imageURL.path.replacingOccurrences(of: " ", with: #"\ "#)
+        let input = "Look at \(escapedPath) please"
+        let result = try #require(input.contentParts())
+
+        #expect(result.parts.count == 3)
+        if case .image = result.parts[1] {
+            // OK — escaped spaces were unescaped and file was loaded
+        } else {
+            Issue.record("Expected .image from escaped-space path, got \(result.parts[1])")
+        }
+    }
+
+    @Test("Escaped-space path display text shows unescaped filename")
+    func escapedSpacesDisplayText() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let spacedDir = tempDir.appendingPathComponent("My Folder \(UUID())")
+        try FileManager.default.createDirectory(at: spacedDir, withIntermediateDirectories: true)
+        let imageURL = spacedDir.appendingPathComponent("nice photo.png")
+        let pngData = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        try pngData.write(to: imageURL)
+        defer { try? FileManager.default.removeItem(at: spacedDir) }
+
+        let escapedPath = imageURL.path.replacingOccurrences(of: " ", with: #"\ "#)
+        let input = "Check \(escapedPath)"
+        let result = try #require(input.contentParts())
+
+        #expect(result.displayText == "Check [Image 1: nice photo.png]")
+    }
+
     @Test("Only image path with no surrounding text")
     func onlyImagePath() throws {
         let tempDir = FileManager.default.temporaryDirectory
