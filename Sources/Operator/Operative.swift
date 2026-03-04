@@ -35,7 +35,7 @@ public struct Operative: Sendable {
     let toolDefinitions: [ToolDefinition]
 
     /// Configuration passed through to LLM conversations.
-    let configuration: ConversationConfiguration
+    public let configuration: ConversationConfiguration
 
     /// Creates an Operative with an ``LLMService`` (protocol-based, for testability).
     ///

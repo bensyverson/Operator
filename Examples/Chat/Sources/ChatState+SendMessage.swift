@@ -5,6 +5,7 @@
 //  Created by Ben Syverson on 2026-03-02.
 //
 
+import ChatCore
 import Foundation
 import Operator
 import TextUI
@@ -30,7 +31,18 @@ extension ChatState {
             return
         }
 
-        let stream: OperationStream = if let convo = lastConversation {
+        // Use multimodal content parts when the model supports vision
+        // and the input contains loadable image/PDF paths.
+        let supportsVision = operative.configuration.model?.supportsVision == true
+        let multimodalParts = supportsVision ? trimmed.contentParts() : nil
+
+        let stream: OperationStream = if let parts = multimodalParts {
+            if let convo = lastConversation {
+                operative.run(parts, continuing: convo)
+            } else {
+                operative.run(parts)
+            }
+        } else if let convo = lastConversation {
             operative.run(trimmed, continuing: convo)
         } else {
             operative.run(trimmed)
