@@ -31,10 +31,12 @@ extension ChatState {
             return
         }
 
-        // Use multimodal content parts when the model supports vision
-        // and the input contains loadable image/PDF paths.
-        let supportsVision = operative.configuration.model?.supportsVision == true
-        let multimodalParts = supportsVision ? trimmed.contentParts() : nil
+        // Use multimodal content parts unless the model explicitly lacks vision.
+        // When model is nil (resolved at call time) or supportsVision is nil
+        // (unknown), we optimistically try — all current Anthropic/OpenAI models
+        // support vision, and sending images to a text-only model is harmless.
+        let skipVision = operative.configuration.model?.supportsVision == false
+        let multimodalParts = skipVision ? nil : trimmed.contentParts()
 
         let stream: OperationStream = if let parts = multimodalParts {
             if let convo = lastConversation {
