@@ -90,6 +90,12 @@ private func parseDate(_ string: String) -> Date? {
         return date
     }
 
+    // Complete date+time as produced by .formatted(date: .complete, time: .complete)
+    // e.g. "Friday, March 20, 2026 at 13:48:53 CDT"
+    if let date = try? Date(string, strategy: Date.FormatStyle(date: .complete, time: .complete)) {
+        return date
+    }
+
     // Datetime without timezone (e.g. 2026-03-02T15:21:00) — treat as local time
     if string.contains("T") || string.contains(" "), string.count > 10 {
         let normalized = string.replacingOccurrences(of: " ", with: "T")
@@ -184,7 +190,7 @@ struct DateMathInput: ToolInput {
     var unit: DateUnit
 
     #if canImport(FoundationModels)
-        @Guide(description: "A date to start from (ISO 8601, date-only like 2026-03-02, or 'now'/'today'). Defaults to now if omitted.")
+        @Guide(description: "A date to start from (ISO 8601, a formatted date like 'Friday, March 20, 2026 at 13:48:53 CDT', or 'now'/'today'). Defaults to now if omitted.")
     #endif
     var from: String?
 
@@ -192,7 +198,7 @@ struct DateMathInput: ToolInput {
         [
             "value": "How many units to add (use a negative number to subtract)",
             "unit": "The calendar unit: days, hours, minutes, weeks, months, or years",
-            "from": "A date to start from (ISO 8601, date-only like 2026-03-02, or 'now'/'today'/'yesterday'/'tomorrow'). Defaults to now if omitted.",
+            "from": "A date to start from (ISO 8601, a formatted date like 'Friday, March 20, 2026 at 13:48:53 CDT', or 'now'/'today'/'yesterday'/'tomorrow'). Defaults to now if omitted.",
         ]
     }
 }

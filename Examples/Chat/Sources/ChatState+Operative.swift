@@ -15,8 +15,8 @@ extension ChatState {
         let provider = ProviderOption.allCases[selectedProviderIndex]
         let systemPrompt = """
         You are a helpful assistant with access to time utilities, a calculator, \
-        a key-value store, and system information tools. Use your tools to answer \
-        the user's questions accurately. Be concise.
+        a key-value store, and system info tools. ALWAYS use a tool if it would help \
+        answer the user's question accurately. Be concise.
         """
         let tools: [any Operable] = [TimeTool(), KeyValueStore(), Calculator(), SystemInfo()]
         let budget = Budget(maxTurns: args.maxTurns)
