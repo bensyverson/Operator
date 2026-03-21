@@ -12,7 +12,6 @@ import TextUI
 
 extension ChatState {
     /// Sends a user message and streams the agent's response.
-    @MainActor
     func send(_ text: String) async {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }

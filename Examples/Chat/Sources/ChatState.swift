@@ -4,20 +4,14 @@ import TextUI
 
 /// The shared state for the chat application.
 ///
-/// Follows the same pattern as `ThemeState` in the TextUI Demo: a plain
-/// `final class: @unchecked Sendable` (no `@MainActor`), with `didSet`
-/// calling `MainActor.assumeIsolated { StateSignal.send() }`.
-///
-/// We can't use `@MainActor` because TextUI's `View.body` is nonisolated —
-/// reading any property from body would be a cross-isolation access error.
-/// The render loop always runs on the main actor, so access is safe at
-/// runtime; `@unchecked Sendable` tells the compiler to trust us.
-final class ChatState: @unchecked Sendable {
-    // MARK: - Reactive properties (trigger re-render)
+/// Uses TextUI's `@Observed` property wrapper on a `@MainActor` class.
+/// Each `@Observed` property automatically calls `StateSignal.send()`
+/// on mutation, triggering a re-render.
+@MainActor
+final class ChatState {
+    // MARK: - Reactive properties (trigger re-render via @Observed)
 
-    var messages: [ChatMessage] = [] {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
+    @Observed var messages: [ChatMessage] = []
 
     /// Non-reactive: TextField manages its own display via EditState in the
     /// FocusStore, and RunLoop already renders after every key event. Making
@@ -26,41 +20,15 @@ final class ChatState: @unchecked Sendable {
     /// `isStreaming` changes in the same call.
     var inputText: String = ""
 
-    var isStreaming: Bool = false {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var debugMode: Bool = false {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var providerConfirmed: Bool = false {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var showProviderPicker: Bool = true {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var currentTurn: Int = 0 {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var totalTokens: Int = 0 {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var providerWarning: String? {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var selectedProviderIndex: Int = 0 {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
-
-    var pressureWarning: String? {
-        didSet { MainActor.assumeIsolated { StateSignal.send() } }
-    }
+    @Observed var isStreaming: Bool = false
+    @Observed var debugMode: Bool = false
+    @Observed var providerConfirmed: Bool = false
+    @Observed var showProviderPicker: Bool = true
+    @Observed var currentTurn: Int = 0
+    @Observed var totalTokens: Int = 0
+    @Observed var providerWarning: String?
+    @Observed var selectedProviderIndex: Int = 0
+    @Observed var pressureWarning: String?
 
     // MARK: - Non-reactive (no UI binding)
 

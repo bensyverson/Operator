@@ -30,6 +30,7 @@ struct InputBarView: View {
     }
 }
 
+@MainActor
 private func sendMessage(_ state: ChatState) {
     guard !state.isStreaming else { return }
     let text = state.inputText

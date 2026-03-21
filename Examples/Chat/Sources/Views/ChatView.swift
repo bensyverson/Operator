@@ -22,7 +22,7 @@ struct ChatView: View {
         }
     }
 
-    private var dismissAction: (@Sendable () -> Void)? {
+    private var dismissAction: (() -> Void)? {
         guard state.providerConfirmed else { return nil }
         return { [state] in state.showProviderPicker = false }
     }
