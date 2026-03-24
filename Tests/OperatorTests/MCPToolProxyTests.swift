@@ -8,7 +8,7 @@ import Testing
 struct MCPToolContentConversionTests {
     @Test("Converts single text content")
     func convertsSingleText() {
-        let content: [Tool.Content] = [.text("Hello, world!")]
+        let content: [Tool.Content] = [.text(text: "Hello, world!", annotations: nil, _meta: nil)]
         let output = ToolOutput(mcpContent: content)
         #expect(output.textContent == "Hello, world!")
         #expect(output.shouldStop == false)
@@ -17,9 +17,9 @@ struct MCPToolContentConversionTests {
     @Test("Converts multiple text content items")
     func convertsMultipleText() {
         let content: [Tool.Content] = [
-            .text("Line one"),
-            .text("Line two"),
-            .text("Line three"),
+            .text(text: "Line one", annotations: nil, _meta: nil),
+            .text(text: "Line two", annotations: nil, _meta: nil),
+            .text(text: "Line three", annotations: nil, _meta: nil),
         ]
         let output = ToolOutput(mcpContent: content)
         // Each text item becomes its own ContentPart; textContent joins them
@@ -31,7 +31,7 @@ struct MCPToolContentConversionTests {
     func convertsImageContent() {
         let base64 = Data([0xFF, 0xD8, 0xFF, 0xE0]).base64EncodedString()
         let content: [Tool.Content] = [
-            .image(data: base64, mimeType: "image/png", metadata: nil),
+            .image(data: base64, mimeType: "image/png", annotations: nil, _meta: nil),
         ]
         let output = ToolOutput(mcpContent: content)
         // Should contain a real image part, not a placeholder
@@ -46,7 +46,7 @@ struct MCPToolContentConversionTests {
     @Test("Falls back to placeholder for invalid base64 image")
     func fallsBackForInvalidBase64() {
         let content: [Tool.Content] = [
-            .image(data: "not-valid-base64!!!", mimeType: "image/png", metadata: nil),
+            .image(data: "not-valid-base64!!!", mimeType: "image/png", annotations: nil, _meta: nil),
         ]
         let output = ToolOutput(mcpContent: content)
         #expect(output.textContent == "[Image: image/png]")
@@ -55,7 +55,7 @@ struct MCPToolContentConversionTests {
     @Test("Converts audio content to placeholder")
     func convertsAudioContent() {
         let content: [Tool.Content] = [
-            .audio(data: "base64data", mimeType: "audio/mp3"),
+            .audio(data: "base64data", mimeType: "audio/mp3", annotations: nil, _meta: nil),
         ]
         let output = ToolOutput(mcpContent: content)
         #expect(output.textContent == "[Audio: audio/mp3]")
@@ -65,9 +65,9 @@ struct MCPToolContentConversionTests {
     func convertsMixedContent() {
         let base64 = Data([0xFF, 0xD8]).base64EncodedString()
         let content: [Tool.Content] = [
-            .text("Here's the result:"),
-            .image(data: base64, mimeType: "image/jpeg", metadata: nil),
-            .text("Done."),
+            .text(text: "Here's the result:", annotations: nil, _meta: nil),
+            .image(data: base64, mimeType: "image/jpeg", annotations: nil, _meta: nil),
+            .text(text: "Done.", annotations: nil, _meta: nil),
         ]
         let output = ToolOutput(mcpContent: content)
         #expect(output.content.count == 3)

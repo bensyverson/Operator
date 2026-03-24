@@ -142,7 +142,7 @@ struct MCPToolProxyCallTests {
         let (connection, server) = try await createTestEnvironment(tools: tools) { name, args in
             receivedName = name
             receivedArgs = args
-            return [.text("Hello, Alice!")]
+            return [.text(text: "Hello, Alice!", annotations: nil, _meta: nil)]
         }
 
         try await connection.connect()
@@ -173,7 +173,7 @@ struct MCPToolProxyCallTests {
         ]
 
         let (connection, server) = try await createTestEnvironment(tools: tools) { _, _ in
-            [.text("pong")]
+            [.text(text: "pong", annotations: nil, _meta: nil)]
         }
 
         try await connection.connect()
@@ -200,9 +200,9 @@ struct MCPToolProxyCallTests {
 
         let (connection, server) = try await createTestEnvironment(tools: tools) { _, _ in
             [
-                .text("Report summary:"),
-                .text("- Item 1"),
-                .text("- Item 2"),
+                .text(text: "Report summary:", annotations: nil, _meta: nil),
+                .text(text: "- Item 1", annotations: nil, _meta: nil),
+                .text(text: "- Item 2", annotations: nil, _meta: nil),
             ]
         }
 
@@ -242,7 +242,7 @@ struct MCPToolProxyCallTests {
         }
 
         await server.withMethodHandler(CallTool.self) { _ in
-            CallTool.Result(content: [.text("Something went wrong")], isError: true)
+            CallTool.Result(content: [.text(text: "Something went wrong", annotations: nil, _meta: nil)], isError: true)
         }
 
         try await server.start(transport: serverTransport)
@@ -327,7 +327,7 @@ struct MCPToolProxyCallTests {
             capturedArgs = args
             let a = args?["a"]?.intValue ?? 0
             let b = args?["b"]?.intValue ?? 0
-            return [.text("\(a + b)")]
+            return [.text(text: "\(a + b)", annotations: nil, _meta: nil)]
         }
 
         try await connection.connect()
