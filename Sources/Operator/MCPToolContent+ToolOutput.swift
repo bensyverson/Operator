@@ -14,18 +14,18 @@ extension ToolOutput {
     init(mcpContent content: [Tool.Content]) {
         let parts: [ContentPart] = content.map { item in
             switch item {
-            case let .text(text):
+            case let .text(text: text, annotations: _, _meta: _):
                 return ContentPart.text(text)
-            case let .image(data, mimeType, _):
+            case let .image(data: data, mimeType: mimeType, annotations: _, _meta: _):
                 if let decoded = Data(base64Encoded: data) {
                     return ContentPart.image(data: decoded, mediaType: mimeType)
                 }
                 return ContentPart.text("[Image: \(mimeType)]")
-            case let .audio(_, mimeType):
+            case let .audio(data: _, mimeType: mimeType, annotations: _, _meta: _):
                 return ContentPart.text("[Audio: \(mimeType)]")
-            case let .resource(resource, _, _):
+            case let .resource(resource: resource, annotations: _, _meta: _):
                 return ContentPart.text("[Resource: \(resource.uri)]")
-            case let .resourceLink(uri, name, _, _, _, _):
+            case let .resourceLink(uri: uri, name: name, title: _, description: _, mimeType: _, annotations: _):
                 return ContentPart.text("[Resource: \(name) (\(uri))]")
             }
         }

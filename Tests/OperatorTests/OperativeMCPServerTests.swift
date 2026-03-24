@@ -33,7 +33,7 @@ struct OperativeMCPServerTests {
 
     /// Parses JSON text content from CallTool response.
     private func parseJSON(from content: [Tool.Content]) throws -> [String: Any] {
-        guard case let .text(jsonString) = content.first else {
+        guard case let .text(text: jsonString, annotations: _, _meta: _) = content.first else {
             Issue.record("Expected text content")
             return [:]
         }
@@ -124,7 +124,7 @@ struct OperativeMCPServerTests {
         )
 
         #expect(isError == true)
-        if case let .text(errorText) = content.first {
+        if case let .text(text: errorText, annotations: _, _meta: _) = content.first {
             #expect(errorText.contains("message"))
         }
 
@@ -145,7 +145,7 @@ struct OperativeMCPServerTests {
         )
 
         #expect(isError == true)
-        if case let .text(errorText) = content.first {
+        if case let .text(text: errorText, annotations: _, _meta: _) = content.first {
             #expect(errorText.contains("nonexistent-session"))
         }
 
@@ -163,7 +163,7 @@ struct OperativeMCPServerTests {
         )
 
         #expect(isError == true)
-        if case let .text(errorText) = content.first {
+        if case let .text(text: errorText, annotations: _, _meta: _) = content.first {
             #expect(errorText.contains("nonexistent_tool"))
         }
 

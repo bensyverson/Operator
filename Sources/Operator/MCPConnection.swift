@@ -241,7 +241,7 @@ public actor MCPConnection {
 
         if result.isError == true {
             let message: String = result.content.compactMap { item -> String? in
-                if case let .text(text) = item { return text }
+                if case let .text(text: text, annotations: _, _meta: _) = item { return text }
                 return nil
             }.joined(separator: "\n")
             throw MCPConnectionError.toolCallFailed(
