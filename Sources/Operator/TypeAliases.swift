@@ -1,11 +1,12 @@
-import LLM
+@_exported import LLM
 
 // MARK: - Public Type Aliases
 
-// These aliases decouple consumers from the underlying LLM library.
-// Code that imports Operator should reference these types (e.g., `Operator.Conversation`)
-// rather than importing LLM directly. If the underlying library changes, only these
-// aliases (or their replacement bridge types) need to be updated.
+// The LLM library nests its types inside the `LLM` actor. These aliases
+// flatten them into the `Operator` namespace so consumers can write
+// `Conversation` instead of `LLM.Conversation`, etc.
+// The `@_exported import LLM` above re-exports the LLM module so that
+// consumers of Operator don't need to import LLM separately.
 
 /// An ongoing conversation with an LLM, including message history and configuration.
 ///
