@@ -95,10 +95,11 @@ extension Operative {
 
     private func runLoop(with initialConversation: Conversation) -> OperationStream {
         OperationStream { continuation in
-            Task {
+            let task = Task {
                 await executeLoop(conversation: initialConversation, continuation: continuation)
                 continuation.finish()
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
