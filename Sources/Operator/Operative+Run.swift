@@ -128,7 +128,7 @@ extension Operative {
         var lastPromptTokens = 0
         let startTime = ContinuousClock.now
 
-        while true {
+        while !Task.isCancelled {
             turnNumber += 1
 
             // Compute and emit pressure signals before budget checks so the
@@ -341,6 +341,8 @@ extension Operative {
             var shouldStop = false
             var stopReason = ""
 
+            guard !Task.isCancelled else { return }
+
             await withTaskGroup(of: ToolExecutionResult.self) { group in
                 for ctx in approved {
                     let arguments: ToolArguments
@@ -529,6 +531,7 @@ extension Operative {
         continuation: OperationStream.Continuation
     ) async throws -> LLMResponse {
         for try await event in stream {
+            try Task.checkCancellation()
             switch event {
             case let .textDelta(chunk):
                 continuation.yield(.text(chunk))
