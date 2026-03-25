@@ -25,6 +25,17 @@ public enum Operation: Sendable {
     /// successive chunks to reconstruct the complete response.
     case text(String)
 
+    /// An incremental fragment of a tool call's arguments during streaming.
+    ///
+    /// Emitted in real time as the model generates tool call arguments.
+    /// The first delta for a given tool call carries the `id` and `name`;
+    /// subsequent deltas carry only `argumentsFragment`. Concatenate
+    /// fragments to reconstruct the full JSON arguments string.
+    ///
+    /// After all deltas are emitted, ``toolsRequested(_:)`` delivers
+    /// the complete, fully-formed tool calls.
+    case toolCallDelta(ToolCallDelta)
+
     /// The LLM requested one or more tool calls.
     case toolsRequested([ToolRequest])
 

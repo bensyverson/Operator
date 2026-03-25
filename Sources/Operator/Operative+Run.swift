@@ -534,9 +534,8 @@ extension Operative {
                 continuation.yield(.text(chunk))
             case let .thinkingDelta(chunk):
                 continuation.yield(.thinking(chunk))
-            case .toolCallDelta:
-                // Tool call deltas are partial; full calls come in .completed
-                break
+            case let .toolCallDelta(delta):
+                continuation.yield(.toolCallDelta(delta))
             case let .completed(conversationResponse):
                 return LLMResponse(from: conversationResponse)
             }

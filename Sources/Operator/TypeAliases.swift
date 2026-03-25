@@ -40,6 +40,14 @@ public typealias FunctionCall = LLM.OpenAICompatibleAPI.FunctionCall
 /// A chat message in a conversation.
 public typealias ChatMessage = LLM.OpenAICompatibleAPI.ChatMessage
 
+/// An incremental update to a tool call during streaming.
+///
+/// Each delta carries the tool's `index` in the response, and optionally the
+/// `id` and `name` (present on the first delta). The `argumentsFragment` is
+/// a fragment of the JSON-encoded function arguments, which accumulate over
+/// successive deltas to form the complete arguments string.
+public typealias ToolCallDelta = LLM.ToolCallDelta
+
 /// A single part of a message's content (text, image, PDF, etc.).
 ///
 /// Messages can contain multiple content parts, enabling multimodal interactions

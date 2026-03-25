@@ -11,7 +11,7 @@ public protocol LLMService: Sendable {
     /// The returned stream emits ``StreamEvent`` values:
     /// - `.textDelta` — an incremental chunk of response text
     /// - `.thinkingDelta` — an incremental chunk of extended thinking
-    /// - `.toolCallDelta` — partial tool call data (consumed internally)
+    /// - `.toolCallDelta` — partial tool call data (forwarded as ``Operation/toolCallDelta(_:)``)
     /// - `.completed` — the final ``ConversationResponse`` with
     ///   full text, tool calls, usage, and the updated conversation
     ///
