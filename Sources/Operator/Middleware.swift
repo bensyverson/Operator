@@ -27,6 +27,18 @@ public protocol Middleware: Sendable {
     /// The default returns ``ToolErrorRecovery/feedbackToLLM(_:)``
     /// with the error's localized description.
     func onToolError(_ error: Error, context: ToolCallContext) async throws -> ToolErrorRecovery
+
+    /// Fires once when the agent's run completes (a terminal turn with
+    /// no tool calls). Use for per-run analysis or cleanup.
+    ///
+    /// A *run* spans from one user message to the agent's final
+    /// response; a *turn* is one LLM-call iteration of the loop. A
+    /// run may contain many turns but fires `afterRun` only once.
+    ///
+    /// Awaited synchronously — the run does not return until this
+    /// completes. Throw to yield an ``StopReason/explicitStop(reason:)``
+    /// result for this run.
+    func afterRun(_ context: RunContext) async throws
 }
 
 // MARK: - Default implementations
@@ -43,4 +55,7 @@ public extension Middleware {
     func onToolError(_ error: Error, context _: ToolCallContext) async throws -> ToolErrorRecovery {
         .feedbackToLLM(error.localizedDescription)
     }
+
+    /// Default no-op: performs no end-of-run action.
+    func afterRun(_: RunContext) async throws {}
 }

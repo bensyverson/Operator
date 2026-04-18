@@ -128,6 +128,15 @@ extension Operative {
         var lastPromptTokens = 0
         let startTime = ContinuousClock.now
 
+        // End-of-run accumulators for RunContext. A "run" starts with
+        // the user message that just arrived, which — for both
+        // `run(_:)` and `run(_:continuing:)` (and their multimodal
+        // variants) — is the last message already present at loop
+        // entry. `runStartIndex` is that message's index.
+        let runStartIndex = max(conversation.messages.count - 1, 0)
+        var thinkingBlocks = [String]()
+        var toolCallsAcrossRun = [ToolRequest]()
+
         while !Task.isCancelled {
             turnNumber += 1
 
@@ -251,9 +260,40 @@ extension Operative {
                 return
             }
 
+            // Accumulate thinking from this turn into the run-level total.
+            if let thinking = responseContext.thinking, !thinking.isEmpty {
+                thinkingBlocks.append(thinking)
+            }
+
             // 5. If no tool calls → completed
             let toolRequests = responseContext.toolCalls
             if toolRequests.isEmpty {
+                // Build the RunContext from accumulated state. Use the
+                // message stream we actually sent to the LLM on this
+                // final turn (requestContext.messages) rather than
+                // conversation.messages, which some LLM services may
+                // have reshaped. Append a synthesized final assistant
+                // message so callers see the full exchange.
+                var runMessages = Array(requestContext.messages.dropFirst(runStartIndex))
+                runMessages.append(Message(
+                    role: .assistant,
+                    content: responseContext.responseText
+                ))
+                let runContext = RunContext(
+                    messages: runMessages,
+                    thinking: thinkingBlocks.joined(separator: "\n\n"),
+                    finalText: responseContext.responseText,
+                    toolCalls: toolCallsAcrossRun
+                )
+                do {
+                    for mw in middleware {
+                        try await mw.afterRun(runContext)
+                    }
+                } catch {
+                    continuation.yield(.stopped(.explicitStop(reason: error.localizedDescription)))
+                    return
+                }
+
                 let result = OperativeResult(
                     text: responseContext.responseText,
                     conversation: conversation,
@@ -269,6 +309,9 @@ extension Operative {
                 continuation.yield(.completed(result))
                 return
             }
+
+            // Accumulate tool calls for end-of-run context.
+            toolCallsAcrossRun.append(contentsOf: toolRequests)
 
             // 7. Emit tools requested
             continuation.yield(.toolsRequested(toolRequests))
@@ -551,7 +594,7 @@ extension Operative {
 // MARK: - Internal types
 
 /// Result of executing a single tool, used for concurrent collection.
-private struct ToolExecutionResult: Sendable {
+private struct ToolExecutionResult {
     let request: ToolRequest
     let outcome: Result<ToolOutput, any Error>
 }

@@ -51,7 +51,7 @@ private final class CallTracker: Middleware, @unchecked Sendable {
 
 @Suite("Middleware Protocol")
 struct MiddlewareProtocolTests {
-    @Test("Default no-op middleware — all four methods unchanged")
+    @Test("Default no-op middleware — all five methods unchanged")
     func defaultNoOp() async throws {
         let middleware: any Middleware = NoOpMiddleware()
         var reqCtx = RequestContext(
@@ -76,6 +76,14 @@ struct MiddlewareProtocolTests {
         } else {
             Issue.record("Expected .feedbackToLLM")
         }
+
+        let runCtx = RunContext(
+            messages: [Message(role: .user, content: "Hello")],
+            thinking: "",
+            finalText: "World",
+            toolCalls: []
+        )
+        try await middleware.afterRun(runCtx)
     }
 
     @Test("Default onToolError returns .feedbackToLLM with localized description")
