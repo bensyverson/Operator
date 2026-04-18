@@ -1,7 +1,7 @@
 import Foundation
 
 /// Available LLM providers for the chat app.
-enum ProviderOption: String, CaseIterable, Sendable {
+enum ProviderOption: String, CaseIterable {
     case apple
     case anthropic
     case openai

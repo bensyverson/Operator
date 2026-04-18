@@ -33,7 +33,7 @@ private struct ArrayInput: ToolInput {
     }
 }
 
-private enum Color: String, Codable, CaseIterable, Sendable {
+private enum Color: String, Codable, CaseIterable {
     case red, green, blue
 }
 
@@ -61,7 +61,7 @@ private struct URLInput: ToolInput {
     }
 }
 
-private struct Inner: Codable, Sendable {
+private struct Inner: Codable {
     let x: Int
     let y: Int
 }

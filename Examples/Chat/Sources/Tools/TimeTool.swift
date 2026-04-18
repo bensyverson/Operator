@@ -208,7 +208,7 @@ struct DateMathInput: ToolInput {
 #if canImport(FoundationModels)
     @Generable
 #endif
-enum DateUnit: String, Codable, Sendable, CaseIterable {
+enum DateUnit: String, Codable, CaseIterable {
     case days, hours, minutes, weeks, months, years
 
     var calendarComponent: Calendar.Component {

@@ -1,7 +1,7 @@
 import Foundation
 
 /// The role of a message in the conversation.
-enum MessageRole: Sendable {
+enum MessageRole {
     case user
     case agent
     case thinking
@@ -11,7 +11,7 @@ enum MessageRole: Sendable {
 }
 
 /// A single message in the chat conversation.
-struct ChatMessage: Identifiable, Sendable {
+struct ChatMessage: Identifiable {
     let id: UUID
     let role: MessageRole
     var text: String

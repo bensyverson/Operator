@@ -124,25 +124,23 @@ public actor MCPConnection {
             throw MCPConnectionError.alreadyConnected
         }
 
-        let transport: any MCP.Transport
-
-        switch transportConfig {
+        let transport: any MCP.Transport = switch transportConfig {
         #if os(macOS) || os(Linux)
             case let .stdio(command, arguments, environment):
-                transport = try launchStdioProcess(
+                try launchStdioProcess(
                     command: command,
                     arguments: arguments,
                     environment: environment
                 )
         #endif
         case let .http(url, configuration, requestModifier):
-            transport = HTTPClientTransport(
+            HTTPClientTransport(
                 endpoint: url,
                 configuration: configuration,
                 requestModifier: requestModifier
             )
         case let .custom(customTransport):
-            transport = customTransport
+            customTransport
         }
 
         let mcpClient = MCP.Client(
