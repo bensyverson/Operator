@@ -105,7 +105,7 @@ public actor OperativeMCPServer {
         await mcpServer.withMethodHandler(CallTool.self) { [weak self] params in
             guard let self else {
                 return CallTool.Result(
-                    content: [.text("Server is shutting down")],
+                    content: [.text(text: "Server is shutting down", annotations: nil, _meta: nil)],
                     isError: true
                 )
             }
@@ -133,7 +133,7 @@ public actor OperativeMCPServer {
     private func handleCallTool(_ params: CallTool.Parameters) async -> CallTool.Result {
         guard params.name == "run" else {
             return CallTool.Result(
-                content: [.text("Unknown tool: \(params.name)")],
+                content: [.text(text: "Unknown tool: \(params.name)", annotations: nil, _meta: nil)],
                 isError: true
             )
         }
@@ -143,7 +143,11 @@ public actor OperativeMCPServer {
               case let .string(message) = messageValue
         else {
             return CallTool.Result(
-                content: [.text(OperativeMCPServerError.missingRequiredParameter("message").localizedDescription)],
+                content: [.text(
+                    text: OperativeMCPServerError.missingRequiredParameter("message").localizedDescription,
+                    annotations: nil,
+                    _meta: nil
+                )],
                 isError: true
             )
         }
@@ -157,7 +161,11 @@ public actor OperativeMCPServer {
         {
             guard let conversation = sessions[requestedSessionID] else {
                 return CallTool.Result(
-                    content: [.text(OperativeMCPServerError.sessionNotFound(requestedSessionID).localizedDescription)],
+                    content: [.text(
+                        text: OperativeMCPServerError.sessionNotFound(requestedSessionID).localizedDescription,
+                        annotations: nil,
+                        _meta: nil
+                    )],
                     isError: true
                 )
             }
@@ -197,10 +205,14 @@ public actor OperativeMCPServer {
             )
             let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
 
-            return CallTool.Result(content: [.text(jsonString)])
+            return CallTool.Result(content: [.text(text: jsonString, annotations: nil, _meta: nil)])
         } catch {
             return CallTool.Result(
-                content: [.text("Agent error: \(error.localizedDescription)")],
+                content: [.text(
+                    text: "Agent error: \(error.localizedDescription)",
+                    annotations: nil,
+                    _meta: nil
+                )],
                 isError: true
             )
         }
